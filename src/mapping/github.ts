@@ -12,18 +12,27 @@ import { GitHubMappingType, GitHubTypes } from '@/types';
 export const mapGithubData = (
   githubData: GitHubTypes
 ): GitHubMappingType | undefined => {
+  console.log('githubData', githubData);
   if (githubData && Object.keys(githubData).length > 0) {
     return {
-      name: githubData?.name,
-      avatar: githubData?.owner?.avatarUrl,
-      description: githubData?.description,
-      license: githubData?.licenseInfo?.spdxId,
-      stars: githubData?.stargazerCount,
-      issues: githubData?.issues?.totalCount,
-      prs: githubData?.pullRequests?.totalCount,
-      version:
-        githubData.latestRelease?.tagName?.replace(/^v/, '') ?? undefined,
-      readMe: githubData?.readMe?.text
+      status: 200,
+      data: {
+        name: githubData?.name,
+        url: githubData?.url,
+        homepageUrl:
+          githubData?.url !== githubData?.homepageUrl
+            ? githubData?.homepageUrl
+            : null,
+        avatar: githubData?.owner?.avatarUrl,
+        description: githubData?.description,
+        license: githubData?.licenseInfo?.spdxId,
+        stars: githubData?.stargazerCount,
+        issues: githubData?.issues?.totalCount,
+        forks: githubData?.forkCount,
+        prs: githubData?.pullRequests?.totalCount,
+        version:
+          githubData.latestRelease?.tagName?.replace(/^v/, '') ?? undefined
+      }
     };
   }
 
@@ -49,22 +58,25 @@ export const graphQuery = (owner: string, repo: string) => {
       description
       stargazerCount
       homepageUrl
-      mentionableUsers {
+      allIssues: issues {
         totalCount
       }
-      licenseInfo {
-        spdxId
-      }
-      latestRelease {
-        tagName
-      }
-      owner {
-        avatarUrl
-      }
-      issues(states: OPEN) {
+      closedIssues: issues(states: CLOSED) {
         totalCount
       }
-      pullRequests(states: OPEN) {
+      openIssues: issues(states: OPEN) {
+        totalCount
+      }
+      allPRs: pullRequests {
+        totalCount
+      }
+      openPRs: pullRequests(states: OPEN) {
+        totalCount
+      }
+      mergedPRs: pullRequests(states: MERGED) {
+        totalCount
+      }
+      closedPRs: pullRequests(states: CLOSED) {
         totalCount
       }
       watchers {
@@ -83,11 +95,25 @@ export const graphQuery = (owner: string, repo: string) => {
           }
         }
       }
-      readMe: object(expression: "HEAD:README.md") {
-        ... on Blob {
-          text
-        }
+      mentionableUsers {
+        totalCount
       }
+      licenseInfo {
+        spdxId
+      }
+      latestRelease {
+        tagName
+      }
+      owner {
+        avatarUrl
+      }
+      issues(states: OPEN) {
+        totalCount
+      }
+      pullRequests(states: OPEN) {
+        totalCount
+      }
+      stargazerCount
       refs(refPrefix: "refs/tags/", last: 1) {
         nodes {
           repository {

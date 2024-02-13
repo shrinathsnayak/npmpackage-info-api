@@ -18,7 +18,8 @@ app.get('/', (req: Request, res: Response) => {
   res.status(200).send(data);
 });
 
-app.get('/package/:id', async (req: Request, res: Response) => {
+app.get('/package/:id*', async (req: Request, res: Response) => {
+  // console.log(req);
   const data = await getPackageInfo(req);
   res.status(200).send(data);
 });
