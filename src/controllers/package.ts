@@ -22,7 +22,7 @@ const getPackageInfo = async (req: Request) => {
       getBundlePhobiaData(id)
     ]);
     const gitHub = (await getRepositoryInfo(pkg)) || null;
-    return { bundlephobia, pkg, gitHub };
+    return { npm: pkg, bundle: bundlephobia, gitHub };
   } catch (err: any) {
     return err.message;
   }

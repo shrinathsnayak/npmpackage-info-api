@@ -1,4 +1,4 @@
-import { GitHubMappingType, GitHubTypes } from '@/types';
+import { GitHubMappingType, GitHubTypes } from '@/types/github';
 
 /**
  * The function `mapGithubData` takes in GitHub data and maps it to a specific format, returning
@@ -12,26 +12,19 @@ import { GitHubMappingType, GitHubTypes } from '@/types';
 export const mapGithubData = (
   githubData: GitHubTypes
 ): GitHubMappingType | undefined => {
-  console.log('githubData', githubData);
   if (githubData && Object.keys(githubData).length > 0) {
     return {
       status: 200,
       data: {
-        name: githubData?.name,
-        url: githubData?.url,
         homepageUrl:
           githubData?.url !== githubData?.homepageUrl
             ? githubData?.homepageUrl
             : null,
         avatar: githubData?.owner?.avatarUrl,
-        description: githubData?.description,
-        license: githubData?.licenseInfo?.spdxId,
         stars: githubData?.stargazerCount,
         issues: githubData?.issues?.totalCount,
         forks: githubData?.forkCount,
         prs: githubData?.pullRequests?.totalCount,
-        version:
-          githubData.latestRelease?.tagName?.replace(/^v/, '') ?? undefined
       }
     };
   }
@@ -53,11 +46,26 @@ export const graphQuery = (owner: string, repo: string) => {
     repository(owner: "${owner}", name: "${repo}") {
       url
       name
+      createdAt
       updatedAt
+      diskUsage
       forkCount
+      isInOrganization
+      hasSponsorshipsEnabled
+      defaultBranchRef {
+        name
+        target {
+          ... on Commit {
+            history {
+              totalCount
+            }
+          }
+        }
+      }
       description
       stargazerCount
       homepageUrl
+      isPrivate
       allIssues: issues {
         totalCount
       }
@@ -79,13 +87,16 @@ export const graphQuery = (owner: string, repo: string) => {
       closedPRs: pullRequests(states: CLOSED) {
         totalCount
       }
+      branches: refs(first: 0, refPrefix: "refs/heads/") {
+        totalCount
+      }
       watchers {
         totalCount
       }
       primaryLanguage {
         name
       }
-      languages(first: 100) {
+      languages(first: 50) {
         totalSize
         edges {
           size
@@ -113,16 +124,19 @@ export const graphQuery = (owner: string, repo: string) => {
       pullRequests(states: OPEN) {
         totalCount
       }
-      stargazerCount
       refs(refPrefix: "refs/tags/", last: 1) {
         nodes {
           repository {
-            releases(last: 1, orderBy: { field: CREATED_AT, direction: ASC }) {
+            releases(first: 10, orderBy: { field: CREATED_AT, direction: DESC }) {
               totalCount
               nodes {
                 name
                 createdAt
                 url
+                publishedAt
+                tag {
+                  name
+                }
               }
             }
           }

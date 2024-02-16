@@ -1,5 +1,4 @@
 import axios, { AxiosResponse } from 'axios';
-import { getPkgInfo } from './npm';
 import { graphQuery, mapGithubData } from '@/mapping/github';
 
 /**
@@ -8,10 +7,8 @@ import { graphQuery, mapGithubData } from '@/mapping/github';
  * @param info - The `info` parameter is of type `Awaited<ReturnType<typeof getPkgInfo>>`.
  * @returns a string, which is the GitHub repository name.
  */
-export function matchGithubRepo(
-  info: Awaited<ReturnType<typeof getPkgInfo>>
-): string {
-  const maybeLink = info.repository?.url || info.homepage;
+export function matchGithubRepo(info: any): string {
+  const maybeLink = info?.data?.repositoryUrl || info?.data?.homepage;
   if (!maybeLink) {
     throw new Error(`Cannot find repository or homepage for ${info.name}`);
   }
