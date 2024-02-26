@@ -69,6 +69,13 @@ export type ReleasesNode = {
   tag?: PrimaryLanguage;
 };
 
+export type LanguageWithPercentage = {
+  name: string | undefined;
+  color: string | undefined;
+  size: number | undefined;
+  sizePercentage: string | 0 | undefined;
+}
+
 export type GitHubTypes = {
   url?: string;
   name?: string;
@@ -108,9 +115,35 @@ export interface GitHubMappingType {
   data: {
     avatar?: string;
     stars?: number;
-    issues?: number;
-    prs?: number;
+    name?: string;
+    license?: string | undefined;
+    latestRelease?: string | undefined;
     homepageUrl?: string | null;
+    description?: string | null;
+    primaryLanguage?: string | undefined;
+    isPrivate: boolean | undefined;
+    isInOrganization?: boolean | undefined;
+    hasSponsorshipsEnabled?: boolean | undefined;
+    defaultBranch?: string | null;
+    commits?: number | null;
     forks?: number | undefined | null;
+    branches?: number | undefined;
+    watchers?: number | undefined;
+    unpacked?: number | null;
+    createdAt?: number | Date | null;
+    updatedAt?: number | Date | null;
+    contributors?: number | undefined;
+    languages?: LanguageWithPercentage;
+    issues?: {
+      total?: number;
+      open?: number;
+      closed?: number;
+    };
+    prs?: {
+      total?: number;
+      open?: number;
+      closed?: number;
+      merged?: number;
+    };
   };
 }

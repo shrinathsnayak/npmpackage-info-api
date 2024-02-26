@@ -52,7 +52,6 @@ const getMaintainers = (array: any) => {
  * `dependecyObject`.
  */
 const getDependencies = (dependecyObject: any) => {
-  console.log(dependecyObject, 'dependecyObject');
   if (dependecyObject && Object.keys(dependecyObject).length > 0) {
     return {
       totalCount: Object.keys(dependecyObject).length,

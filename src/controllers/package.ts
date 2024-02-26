@@ -2,27 +2,34 @@ import { Request } from 'express';
 import { getPkgInfo } from '@/services/npm';
 import { getRepositoryInfo } from '@/services/github';
 import { getBundlePhobiaData } from '@/services/bundlephobia';
-import { getPackageId } from '@/utils/helpers';
 
 /**
- * The function `getPackageInfo` takes a request object, retrieves package information and related
- * data, and returns an object containing the package information, bundlephobia data, and GitHub
- * information (if available).
- * @param {Request} req - The `req` parameter is of type `Request`. It is likely an object that
- * represents an HTTP request and contains information such as the request method, headers, query
- * parameters, and request body.
- * @returns The function `getPackageInfo` returns an object with three properties: `bundlephobia`,
- * `pkg`, and `gitHub`.
+ * The function `getPackageInfo` retrieves information about a package from npm, BundlePhobia, and
+ * GitHub based on a query parameter.
+ * @param {Request} req - Request object containing information about the HTTP request made by the
+ * client. It typically includes properties such as query parameters, headers, body, and other request
+ * details.
+ * @returns The function `getPackageInfo` is returning an object with information about a package,
+ * including npm package info, bundlephobia data, and GitHub repository info. If an error occurs during
+ * the process, the function will return the error message. If the query parameter `q` is not provided,
+ * it will return a status of 400 and a message indicating that the package was not found.
  */
 const getPackageInfo = async (req: Request) => {
   try {
-    const id = getPackageId(req);
+    const { q }: any = req.query;
+    if (!q) {
+      return {
+        status: 400,
+        message: 'Package not found'
+      }
+    }
     const [pkg, bundlephobia] = await Promise.all([
-      getPkgInfo(id),
-      getBundlePhobiaData(id)
+      getPkgInfo(q),
+      getBundlePhobiaData(q)
     ]);
     const gitHub = (await getRepositoryInfo(pkg)) || null;
     return { npm: pkg, bundle: bundlephobia, gitHub };
+    // return { ...gitHub };
   } catch (err: any) {
     return err.message;
   }

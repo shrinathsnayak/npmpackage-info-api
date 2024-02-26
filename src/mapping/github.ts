@@ -1,4 +1,5 @@
 import { GitHubMappingType, GitHubTypes } from '@/types/github';
+import { generateLanguageArray } from '@/utils/helpers';
 
 /**
  * The function `mapGithubData` takes in GitHub data and maps it to a specific format, returning
@@ -16,15 +17,41 @@ export const mapGithubData = (
     return {
       status: 200,
       data: {
+        name: githubData?.name,
         homepageUrl:
           githubData?.url !== githubData?.homepageUrl
             ? githubData?.homepageUrl
             : null,
         avatar: githubData?.owner?.avatarUrl,
+        description: githubData?.description,
+        createdAt: githubData?.createdAt,
+        updatedAt: githubData?.updatedAt,
+        license: githubData?.licenseInfo?.spdxId,
+        latestRelease: githubData?.latestRelease?.tagName,
+        primaryLanguage: githubData?.primaryLanguage?.name,
+        isPrivate: githubData?.isPrivate,
+        isInOrganization: githubData?.isInOrganization,
+        hasSponsorshipsEnabled: githubData?.hasSponsorshipsEnabled,
+        defaultBranch: githubData?.defaultBranchRef?.name,
+        commits: githubData?.defaultBranchRef?.target?.history?.totalCount,
         stars: githubData?.stargazerCount,
-        issues: githubData?.issues?.totalCount,
         forks: githubData?.forkCount,
-        prs: githubData?.pullRequests?.totalCount,
+        branches: githubData?.branches?.totalCount,
+        watchers: githubData?.watchers?.totalCount,
+        unpacked: githubData?.diskUsage,
+        contributors: githubData?.mentionableUsers?.totalCount,
+        prs: {
+          total: githubData?.allPRs?.totalCount,
+          open: githubData?.openPRs?.totalCount,
+          closed: githubData?.closedPRs?.totalCount,
+          merged: githubData?.mergedPRs?.totalCount
+        },
+        issues: {
+          total: githubData?.allIssues?.totalCount,
+          open: githubData?.openIssues?.totalCount,
+          closed: githubData?.closedIssues?.totalCount
+        },
+        languages: generateLanguageArray(githubData?.languages),
       }
     };
   }
@@ -127,7 +154,7 @@ export const graphQuery = (owner: string, repo: string) => {
       refs(refPrefix: "refs/tags/", last: 1) {
         nodes {
           repository {
-            releases(first: 10, orderBy: { field: CREATED_AT, direction: DESC }) {
+            releases(first: 5, orderBy: { field: CREATED_AT, direction: DESC }) {
               totalCount
               nodes {
                 name

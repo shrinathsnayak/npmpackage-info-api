@@ -1,11 +1,19 @@
 import axios, { AxiosResponse } from 'axios';
 import { graphQuery, mapGithubData } from '@/mapping/github';
+import getGitHubInfo from '@/controllers/github';
 
 /**
- * The function `matchGithubRepo` takes in package information and returns the GitHub repository name
- * if found, otherwise it throws an error.
- * @param info - The `info` parameter is of type `Awaited<ReturnType<typeof getPkgInfo>>`.
- * @returns a string, which is the GitHub repository name.
+ * This TypeScript function extracts the GitHub repository name from a given object containing
+ * repository information.
+ * @param {any} info - The `info` parameter is an object that contains data related to a repository. It
+ * is expected to have a `data` property which in turn may have a `repositoryUrl` or `homepage`
+ * property. The function `matchGithubRepo` tries to extract the GitHub repository name from the
+ * provided information
+ * @returns The function `matchGithubRepo` returns a string that represents the GitHub repository name
+ * extracted from the provided `info` object. If the GitHub repository URL is found in the `info`
+ * object, it extracts the repository name from the URL using regular expressions and returns it. If
+ * the URL is not found or the extraction fails, it throws an error indicating that the GitHub
+ * repository could not be found for the
  */
 export function matchGithubRepo(info: any): string {
   const maybeLink = info?.data?.repositoryUrl || info?.data?.homepage;
@@ -16,14 +24,14 @@ export function matchGithubRepo(info: any): string {
     const regex = /git(?:\+https)?:\/\/github\.com\/(.*)\.git/;
     const match = maybeLink.match(regex);
     if (match) {
-      return match[1];
+      return match[1]?.replace(/\.git$/, '');
     }
   }
   {
     const regex = /https:\/\/github\.com\/(.*)/;
     const match = maybeLink.match(regex);
     if (match) {
-      return match[1];
+      return match[1]?.replace(/\.git$/, '');
     }
   }
   throw new Error(`Cannot find github repo for ${info.name}`);
@@ -45,19 +53,7 @@ export const getRepositoryInfo = async (npmPkg: string) => {
       return;
     }
     const [owner, repo] = pkgGitUrl.split('/');
-    const query = graphQuery(owner, repo);
-    const url = `https://api.github.com/graphql?repo=${pkgGitUrl}`;
-    const response: AxiosResponse = await axios.post(
-      url,
-      { query },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`
-        }
-      }
-    );
-    const { repository } = response?.data?.data || {};
-    return mapGithubData(repository);
+    return getGitHubInfo(owner, repo);
   } catch (e) {
     console.error(e);
   }

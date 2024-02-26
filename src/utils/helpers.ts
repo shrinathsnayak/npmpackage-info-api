@@ -1,13 +1,21 @@
-import { Request } from 'express';
+import { Edge, LanguageWithPercentage, Languages } from '@/types/github';
 
-/**
- * The function `getPackageId` takes a request object and returns a package ID by concatenating the
- * `id` parameter with an optional additional parameter.
- * @param {RequestType} req - The parameter `req` is of type `RequestType`.
- * @returns a string value.
- */
-export const getPackageId = (req: Request) => {
-  return req.params?.[0]
-    ? `${req.params?.id}${req.params?.[0]}`
-    : req.params?.id;
+export const generateLanguageArray = (languages: Languages | undefined) => {
+  if (!languages || !languages.edges) {
+    return [];
+  }
+
+  const totalSize: number = languages?.totalSize || 0;
+
+  const languageArray: any = languages.edges.map(
+    (language: Edge) => ({
+      name: language?.node?.name,
+      color: language?.node?.color,
+      size: language?.size,
+      sizePercentage:
+        language?.size && ((language?.size / totalSize) * 100)?.toFixed(2)
+    })
+  );
+
+  return languageArray;
 };
