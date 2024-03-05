@@ -51,7 +51,7 @@ export const mapGithubData = (
           open: githubData?.openIssues?.totalCount,
           closed: githubData?.closedIssues?.totalCount
         },
-        languages: generateLanguageArray(githubData?.languages),
+        languages: generateLanguageArray(githubData?.languages)
       }
     };
   }

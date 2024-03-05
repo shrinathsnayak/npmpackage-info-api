@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { getPkgInfo } from '@/services/npm';
-import { getRepositoryInfo } from '@/services/github';
+import { getRepositoryInfo } from '@/controllers/github';
 import { getBundlePhobiaData } from '@/services/bundlephobia';
 
 /**
@@ -21,7 +21,7 @@ const getPackageInfo = async (req: Request) => {
       return {
         status: 400,
         message: 'Package not found'
-      }
+      };
     }
     const [pkg, bundlephobia] = await Promise.all([
       getPkgInfo(q),

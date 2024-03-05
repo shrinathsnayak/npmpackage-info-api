@@ -2,8 +2,9 @@ import 'module-alias/register';
 import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import getPackageInfo from './controllers/package';
-import getGitHubInfo from './controllers/github';
-import { getPkgInfo } from './services/npm';
+import { getGitHubInfo, getRepositoryReadMe } from './services/github';
+import { getPkgInfo, searchPackage } from './services/npm';
+import { getHealth } from './controllers/health';
 
 dotenv.config();
 
@@ -11,12 +12,7 @@ const app: Express = express();
 const port = process.env.PORT || 8000;
 
 app.get('/', (req: Request, res: Response) => {
-  const data = {
-    uptime: process.uptime(),
-    message: 'Ok',
-    date: new Date()
-  };
-
+  const data = getHealth();
   res.status(200).send(data);
 });
 
@@ -27,7 +23,10 @@ app.get('/package', async (req: Request, res: Response) => {
 });
 
 app.get('/npm', async (req: Request, res: Response) => {
-  const { project, version = 'latest' } = req.query as { project: string, version: string };
+  const { project, version = 'latest' } = req.query as {
+    project: string;
+    version: string;
+  };
   if (!project) {
     res.send(404).send({
       status: 404,
@@ -55,7 +54,28 @@ app.get('/github', async (req: Request, res: Response) => {
     });
   } else {
     try {
-      const data = await getGitHubInfo(owner, repo);
+      const data = await getRepositoryReadMe(owner, repo);
+      res.send(data);
+    } catch (err) {
+      res.status(500).send({
+        status: 500,
+        message: 'Internal server error'
+      });
+    }
+  }
+});
+
+app.get('/search', async (req: Request, res: Response) => {
+  const { q, size } = req?.query as { q?: string; size?: number };
+
+  if (!q) {
+    res.send(404).send({
+      status: 404,
+      message: 'Query is missing.'
+    });
+  } else {
+    try {
+      const data = await searchPackage(q, size);
       res.send(data);
     } catch (err) {
       res.status(500).send({

@@ -74,7 +74,7 @@ export type LanguageWithPercentage = {
   color: string | undefined;
   size: number | undefined;
   sizePercentage: string | 0 | undefined;
-}
+};
 
 export type GitHubTypes = {
   url?: string;

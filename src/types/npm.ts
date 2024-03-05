@@ -92,8 +92,61 @@ export type NpmMappingType = {
   };
 };
 
+export interface mapNpmSearchDataTypes {
+  name?: string;
+  version?: string;
+  description?: string;
+  date?: string;
+  score?: {
+    searchScore?: number;
+    final?: number;
+    details?: {
+      quality?: number;
+      popularity?: number;
+      maintenance?: number;
+    };
+  };
+}
+
+export type mapNpmSearchDataMapping = {
+  status: number;
+  data: mapNpmSearchDataTypes[];
+};
+
 type MaintainersTypes = {
   name?: string;
   email?: string;
   img?: string;
 };
+
+export interface SearchObjectType {
+  objects: Object[];
+  total: number;
+  time: string;
+}
+
+export interface Object {
+  package: Package;
+  score: Score;
+  searchScore: number;
+}
+
+export interface Package {
+  name: string;
+  scope: string;
+  version: string;
+  description: string;
+  keywords?: string[];
+  date: string;
+}
+
+export interface Score {
+  final: number;
+  detail: Detail;
+}
+
+export interface Detail {
+  quality: number;
+  popularity: number;
+  maintenance: number;
+}

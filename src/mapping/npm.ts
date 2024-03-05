@@ -1,4 +1,9 @@
-import { NpmTypes, NpmMappingType } from '@/types/npm';
+import {
+  NpmTypes,
+  NpmMappingType,
+  SearchObjectType,
+  mapNpmSearchDataMapping
+} from '@/types/npm';
 import { getProfilePhotoUrl } from '@/utils/gravatar';
 
 /**
@@ -104,6 +109,52 @@ export const mapNpmData = (npmData: NpmTypes): NpmMappingType | any => {
             getDependencies(npmData?.optionalDependencies)
         }
       }
+    };
+  }
+};
+
+/**
+ * The function `mapNpmSearchData` takes npm search data and maps it to a specific format, returning
+ * either the mapped data with a 200 status or a 404 status with a message if no package was found.
+ * @param {SearchObjectType} npmData - The `npmData` parameter is an object that contains search
+ * results data from an npm search query. It has a specific structure defined by the `SearchObjectType`
+ * type. The function `mapNpmSearchData` takes this data and maps it to a new format defined by the
+ * `mapNpm
+ * @returns The function `mapNpmSearchData` returns an object with a `status` property and either a
+ * `data` property containing an array of mapped npm search data or a `message` property indicating
+ * that no package was found with the specified name.
+ */
+export const mapNpmSearchData = (
+  npmData: SearchObjectType
+): mapNpmSearchDataMapping | any => {
+  if (npmData && npmData?.objects?.length > 0) {
+    const data = npmData?.objects?.map((item) => {
+      return {
+        name: item?.package?.name,
+        version: item?.package?.version,
+        description: item?.package?.description,
+        date: item?.package?.date,
+        score: {
+          searchScore: item?.searchScore,
+          final: item?.score?.final,
+          details: {
+            quality: item?.score?.detail?.quality,
+            popularity: item?.score?.detail?.popularity,
+            maintenance: item?.score?.detail?.maintenance
+          }
+        }
+      };
+    });
+    if (data?.length > 0) {
+      return {
+        status: 200,
+        data: data
+      };
+    }
+  } else {
+    return {
+      status: 404,
+      message: 'No package was found with the specified name'
     };
   }
 };
