@@ -1,3 +1,4 @@
+import { mapScanData } from '@/mapping/securityscan';
 import axios, { AxiosResponse } from 'axios';
 
 /**
@@ -12,8 +13,11 @@ import axios, { AxiosResponse } from 'axios';
  * `owner` and `repoName`.
  */
 export const getSecurityScore = async (owner: string, repoName: string) => {
-  const url = `https://api.securityscorecards.dev/projects/github.com/${owner}/${repoName}`;
-  const response: AxiosResponse = await axios.get(url);
-
-  return response?.data;
+  try {
+    const url = `https://api.securityscorecards.dev/projects/github.com/${owner}/${repoName}`;
+    const response: AxiosResponse = await axios.get(url);
+    return mapScanData(response?.data);
+  } catch (err) {
+    console.error(err);
+  }
 };

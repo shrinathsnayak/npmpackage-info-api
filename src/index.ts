@@ -2,9 +2,10 @@ import 'module-alias/register';
 import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import getPackageInfo from './controllers/package';
-import { getGitHubInfo, getRepositoryReadMe } from './services/github';
+import { getGitHubInfo } from './services/github';
 import { getPkgInfo, searchPackage } from './services/npm';
 import { getHealth } from './controllers/health';
+import { getSecurityScore } from './services/securityscan';
 
 dotenv.config();
 
@@ -54,7 +55,27 @@ app.get('/github', async (req: Request, res: Response) => {
     });
   } else {
     try {
-      const data = await getRepositoryReadMe(owner, repo);
+      const data = await getGitHubInfo(owner, repo);
+      res.send(data);
+    } catch (err) {
+      res.status(500).send({
+        status: 500,
+        message: 'Internal server error'
+      });
+    }
+  }
+});
+
+app.get('/scan', async (req: Request, res: Response) => {
+  const { owner, repo } = req?.query as { owner: string; repo: string };
+  if (!owner || !repo) {
+    res.send(404).send({
+      status: 404,
+      message: 'Either owner or repo is missing.'
+    });
+  } else {
+    try {
+      const data = await getSecurityScore(owner, repo);
       res.send(data);
     } catch (err) {
       res.status(500).send({

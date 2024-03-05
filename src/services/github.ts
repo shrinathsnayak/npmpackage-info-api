@@ -51,7 +51,6 @@ export const getRepositoryReadMe = async (owner: string, repoName: string) => {
   const { content } = response?.data || {};
   if (content) {
     return base64Decode(content);
-    // return atob(content.toString());
   }
   return null;
 };
