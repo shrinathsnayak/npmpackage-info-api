@@ -11,12 +11,15 @@ import { generateLanguageArray } from '@/utils/helpers';
  * @returns The function `mapGithubData` returns a `GitHubMappingType` object or `undefined`.
  */
 export const mapGithubData = (
-  githubData: GitHubTypes
+  githubData: GitHubTypes,
+  owner: string,
+  readMeData: string | null,
 ): GitHubMappingType | undefined => {
   if (githubData && Object.keys(githubData).length > 0) {
     return {
       status: 200,
       data: {
+        owner: owner,
         name: githubData?.name,
         homepageUrl:
           githubData?.url !== githubData?.homepageUrl
@@ -51,7 +54,8 @@ export const mapGithubData = (
           open: githubData?.openIssues?.totalCount,
           closed: githubData?.closedIssues?.totalCount
         },
-        languages: generateLanguageArray(githubData?.languages)
+        languages: generateLanguageArray(githubData?.languages),
+        readMe: readMeData
       }
     };
   }
@@ -150,6 +154,26 @@ export const graphQuery = (owner: string, repo: string) => {
       }
       pullRequests(states: OPEN) {
         totalCount
+      }
+      readMe: object(expression: "HEAD:README.md") {
+        ... on Blob {
+          text
+        }
+      }
+      readMeOther: object(expression: "HEAD:readme.md") {
+        ... on Blob {
+          text
+        }
+      }
+      otherFile: object(expression: "HEAD:index.js") {
+        ... on Blob {
+          text
+        }
+      }
+      nextjsReadMe: object(expression: "HEAD:packages/next/README.md") {
+        ... on Blob {
+          text
+        }
       }
       refs(refPrefix: "refs/tags/", last: 1) {
         nodes {

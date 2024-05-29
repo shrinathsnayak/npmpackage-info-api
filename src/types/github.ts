@@ -113,6 +113,7 @@ export type GitHubTypes = {
 export interface GitHubMappingType {
   status?: number;
   data: {
+    owner?: string;
     avatar?: string;
     stars?: number;
     name?: string;
@@ -134,6 +135,7 @@ export interface GitHubMappingType {
     updatedAt?: number | Date | null;
     contributors?: number | undefined;
     languages?: LanguageWithPercentage;
+    readMe?: string | null;
     issues?: {
       total?: number;
       open?: number;

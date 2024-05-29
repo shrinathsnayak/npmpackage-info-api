@@ -23,8 +23,9 @@ export const getGitHubInfo = async (owner: string, repoName: string) => {
       }
     }
   );
+  const readMeData: string | null = await getRepositoryReadMe(owner, repoName);
   const { repository } = response?.data?.data || {};
-  return mapGithubData(repository);
+  return mapGithubData(repository, owner, readMeData);
 };
 
 /**

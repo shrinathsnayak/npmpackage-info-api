@@ -2,6 +2,8 @@ import { Request } from 'express';
 import { getPkgInfo } from '@/services/npm';
 import { getRepositoryInfo } from '@/controllers/github';
 import { getBundlePhobiaData } from '@/services/bundlephobia';
+import { getSecurityScore } from '@/services/securityscan';
+import { GitHubMappingType } from '@/types/github';
 
 /**
  * The function `getPackageInfo` retrieves information about a package from npm, BundlePhobia, and
@@ -27,9 +29,9 @@ const getPackageInfo = async (req: Request) => {
       getPkgInfo(q),
       getBundlePhobiaData(q)
     ]);
-    const gitHub = (await getRepositoryInfo(pkg)) || null;
-    return { npm: pkg, bundle: bundlephobia, gitHub };
-    // return { ...gitHub };
+    const gitHub: any = (await getRepositoryInfo(pkg)) ?? {};
+    const securityScore: any = (await getSecurityScore(gitHub?.data?.owner, gitHub?.data?.name)) || null;
+    return { npm: pkg, bundle: bundlephobia, gitHub, securityScore };
   } catch (err: any) {
     return err.message;
   }
