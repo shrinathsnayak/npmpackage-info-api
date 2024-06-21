@@ -83,6 +83,7 @@ export type GitHubTypes = {
   updatedAt?: Date;
   diskUsage?: number;
   forkCount?: number;
+  repository?: any;
   isInOrganization?: boolean;
   hasSponsorshipsEnabled?: boolean;
   defaultBranchRef?: DefaultBranchRef;
@@ -117,6 +118,7 @@ export interface GitHubMappingType {
     avatar?: string;
     stars?: number;
     name?: string;
+    repositoryUrl?: string | undefined;
     license?: string | undefined;
     latestRelease?: string | undefined;
     homepageUrl?: string | null;

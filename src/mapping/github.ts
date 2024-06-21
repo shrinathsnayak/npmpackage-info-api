@@ -25,6 +25,7 @@ export const mapGithubData = (
           githubData?.url !== githubData?.homepageUrl
             ? githubData?.homepageUrl
             : null,
+        repositoryUrl: githubData?.url,
         avatar: githubData?.owner?.avatarUrl,
         description: githubData?.description,
         createdAt: githubData?.createdAt,
@@ -175,10 +176,10 @@ export const graphQuery = (owner: string, repo: string) => {
           text
         }
       }
-      refs(refPrefix: "refs/tags/", last: 1) {
+      releases: refs(refPrefix: "refs/tags/", last: 1) {
         nodes {
           repository {
-            releases(first: 5, orderBy: { field: CREATED_AT, direction: DESC }) {
+            releases(first: 10, orderBy: { field: CREATED_AT, direction: DESC }) {
               totalCount
               nodes {
                 name

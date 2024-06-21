@@ -18,7 +18,7 @@ export const mapScanData = (data: SecurityScan): MapDataType => {
       lastScanned: data?.date,
       overallScore: OVERALL_SCORE,
       score: data?.score,
-      checks: data?.checks?.map((item: CheckType) => {
+      checks: data?.checks?.sort((a: any, b: any) => b.score - a.score)?.map((item: CheckType) => {
         if (item && item.score !== undefined && item.score >= 0) {
           return {
             name: item.name,
