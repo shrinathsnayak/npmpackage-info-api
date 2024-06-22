@@ -21,7 +21,7 @@ export function matchGithubRepo(info: any): string {
     throw new Error(`Cannot find repository or homepage for ${info.name}`);
   }
   {
-    const regex = /git(?:\+https)?:\/\/github\.com\/(.*)\.git/;
+    const regex = /git(?:\+https|\+ssh)?:\/\/(?:git@)?github\.com\/(.*)\.git/;
     const match = maybeLink.match(regex);
     if (match) {
       return match[1]?.replace(/\.git$/, '');

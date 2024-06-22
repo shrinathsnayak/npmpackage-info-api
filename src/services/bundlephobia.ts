@@ -13,7 +13,10 @@ export const getBundlePhobiaData = async (pkg: string) => {
   try {
     const url = `https://bundlephobia.com/api/size?package=${pkg}`;
     const response: AxiosResponse = await axios.get(url);
-    return response.data;
+    return {
+      status: response.status,
+      data: response.data
+    };
   } catch (e: any) {
     return {
       error: e?.response?.status,
