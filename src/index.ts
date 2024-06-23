@@ -1,7 +1,7 @@
 import 'module-alias/register';
 import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
-import getPackageInfo from './controllers/package';
+import { getPackageDownloads, getPackageInfo } from './controllers/package';
 import { getGitHubInfo } from './services/github';
 import { getPkgInfo, searchPackage } from './services/npm';
 import { getHealth } from './controllers/health';
@@ -19,7 +19,20 @@ app.get('/', (req: Request, res: Response) => {
 
 app.get('/package', async (req: Request, res: Response) => {
   const data = await getPackageInfo(req);
+  res.status(200).send(data);
+});
 
+app.get('/downloads', async (req: Request, res: Response) => {
+  const {
+    package: packageName,
+    startDate,
+    endDate
+  } = req.query as {
+    package: string;
+    startDate: string;
+    endDate: string;
+  };
+  const data = await getPackageDownloads(packageName, startDate, endDate);
   res.status(200).send(data);
 });
 

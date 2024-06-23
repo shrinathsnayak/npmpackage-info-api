@@ -1,4 +1,4 @@
-import { CheckType, MapDataType, SecurityScan } from "@/types/securityscan";
+import { CheckType, MapDataType, SecurityScan } from '@/types/securityscan';
 
 export const OVERALL_SCORE = 10;
 
@@ -18,17 +18,21 @@ export const mapScanData = (data: SecurityScan): MapDataType => {
       lastScanned: data?.date,
       overallScore: OVERALL_SCORE,
       score: data?.score,
-      checks: data?.checks?.sort((a: any, b: any) => b.score - a.score)?.map((item: CheckType) => {
-        if (item && item.score !== undefined && item.score >= 0) {
-          return {
-            name: item.name,
-            score: item.score,
-            reason: item.reason,
-            details: item.details,
-            description: item.documentation?.short
-          };
-        }
-      }).filter(Boolean) ?? []
+      checks:
+        data?.checks
+          ?.sort((a: any, b: any) => b.score - a.score)
+          ?.map((item: CheckType) => {
+            if (item && item.score !== undefined && item.score >= 0) {
+              return {
+                name: item.name,
+                score: item.score,
+                reason: item.reason,
+                details: item.details,
+                description: item.documentation?.short
+              };
+            }
+          })
+          .filter(Boolean) ?? []
     }
-  }
-}
+  };
+};

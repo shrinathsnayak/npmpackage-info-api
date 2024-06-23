@@ -1,3 +1,4 @@
+import { addYears, endOfYear, format } from 'date-fns';
 import { Edge, Languages } from '@/types/github';
 
 /**
@@ -41,4 +42,137 @@ export const base64Decode = (base64EncodedString: string): string => {
     console.error('Error decoding base64 string:', error);
     return '';
   }
+};
+
+/**
+ * The function getListOfRangesSinceStart generates a list of date ranges starting from a specified
+ * date up to the current date, with each range representing a year.
+ * @param {string} sinceDate - The `sinceDate` parameter is the starting date from which you want to
+ * generate a list of ranges.
+ * @param {string} endDate - The `endDate` parameter represents the date until which you want to
+ * generate ranges. This function `getListOfRangesSinceStart` will generate a list of ranges starting
+ * from the `sinceDate` up to the `endDate`, with each range representing a year.
+ * @returns An array of objects representing ranges of dates starting from the `sinceDate` up to the
+ * `endDate`, with each object containing a `start` date and an `end` date in the format 'yyyy-MM-dd'.
+ */
+export const getListOfRangesSinceStart = (
+  sinceDate: string,
+  endDate: string
+) => {
+  const startDate = new Date(sinceDate);
+  const today = new Date(endDate);
+  const ranges = [];
+  let current = startDate;
+  while (current <= today) {
+    ranges.push({
+      start: format(current, 'yyyy-MM-dd'),
+      end: format(endOfYear(current), 'yyyy-MM-dd')
+    });
+    current = addYears(current, 1);
+  }
+  return ranges;
+};
+
+/**
+ * The function `getSumOfDownloads` calculates the total sum of downloads from an array of objects.
+ * @param downloads - An array containing objects with a "downloads" property representing the number
+ * of downloads for each item.
+ * @returns The function `getSumOfDownloads` is returning the total sum of downloads from the array of
+ * objects passed as the `downloads` parameter.
+ */
+export const getSumOfDownloads = (downloads: []) => {
+  return downloads.reduce((acc, { downloads }) => {
+    return acc + downloads;
+  }, 0);
+};
+
+/**
+ * This TypeScript function calculates the total weekly downloads starting from the first Monday in the
+ * provided array of download data.
+ * @param {any} downloads - The `getWeeklyDownloads` function takes an array of downloads as input and
+ * calculates the total downloads for each week starting from the first Monday in the array.
+ * @returns The function `getWeeklyDownloads` returns an array of objects containing the day and total
+ * downloads for each Monday in the input `downloads` array. Each object in the returned array
+ * represents a Monday and its corresponding total downloads for that week.
+ */
+export const getWeeklyDownloads = (downloads: any) => {
+  const firstMonday: any = downloads.findIndex(
+    (d: any) => new Date(d.day).getDay() === 1
+  );
+  return downloads.slice(firstMonday).reduce((acc: any, curr: any) => {
+    const isMonday = new Date(curr.day).getDay() === 1;
+    if (isMonday) {
+      return [
+        ...acc,
+        {
+          day: curr.day,
+          downloads: curr.downloads
+        }
+      ];
+    }
+
+    const last = acc[acc.length - 1];
+    last.downloads += curr.downloads;
+    return acc;
+  }, []);
+};
+
+/**
+ * The function `getMonthlyDownloads` calculates the total downloads per month based on the input data.
+ * @param {any} downloads - The `getMonthlyDownloads` function takes an array of downloads as input.
+ * Each download object in the array should have a `day` property representing the date of the download
+ * and a `downloads` property representing the number of downloads on that day.
+ * @returns The function `getMonthlyDownloads` returns an array of objects where each object represents
+ * a month with the total downloads for that month. Each object has two properties: `day` which
+ * represents the date of the month and `downloads` which represents the total downloads for that
+ * month.
+ */
+export const getMonthlyDownloads = (downloads: any) => {
+  return downloads.reduce((acc: any, curr: any) => {
+    const last = acc[acc.length - 1];
+    const isNewMonth =
+      !last || new Date(curr.day).getMonth() !== new Date(last.day).getMonth();
+    if (isNewMonth) {
+      return [
+        ...acc,
+        {
+          day: curr.day,
+          downloads: curr.downloads
+        }
+      ];
+    }
+
+    last.downloads += curr.downloads;
+    return acc;
+  }, []);
+};
+
+/**
+ * The function `getYearlyDownloads` calculates the total downloads per year based on the input data.
+ * @param {any} downloads - The `getYearlyDownloads` function takes an array of downloads as input.
+ * Each download object in the array should have a `day` property representing the date of the download
+ * and a `downloads` property representing the number of downloads on that day.
+ * @returns The function `getYearlyDownloads` takes an array of downloads and calculates the total
+ * downloads for each year. It returns an array of objects where each object represents a year with the
+ * total downloads for that year.
+ */
+export const getYearlyDownloads = (downloads: any) => {
+  return downloads.reduce((acc: any, curr: any) => {
+    const last = acc[acc.length - 1];
+    const isNewYear =
+      !last ||
+      new Date(curr.day).getFullYear() !== new Date(last.day).getFullYear();
+    if (isNewYear) {
+      return [
+        ...acc,
+        {
+          day: curr.day,
+          downloads: curr.downloads
+        }
+      ];
+    }
+
+    last.downloads += curr.downloads;
+    return acc;
+  }, []);
 };

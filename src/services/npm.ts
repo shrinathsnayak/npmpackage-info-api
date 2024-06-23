@@ -1,5 +1,6 @@
-import { mapNpmData, mapNpmSearchData } from '@/mapping/npm';
 import axios, { AxiosResponse } from 'axios';
+import { mapNpmData, mapNpmSearchData } from '@/mapping/npm';
+import { getListOfRangesSinceStart } from '@/utils/helpers';
 
 /**
  * The function `getPkgInfo` fetches information about a specified npm package and version from the npm
@@ -43,4 +44,42 @@ export const searchPackage = async (pkg: string, size: number = 5) => {
   } catch (e) {
     console.error(e);
   }
+};
+
+export const getAllDailyDownloads = async (
+  packageName: string,
+  sinceDate: string,
+  endDate: string
+) => {
+  const ranges = getListOfRangesSinceStart(sinceDate, endDate);
+  const rangesResponses = await Promise.all(
+    ranges.map(({ start, end }) => {
+      return axios.get(
+        `https://api.npmjs.org/downloads/range/${start}:${end}/${packageName}`
+      );
+    })
+  );
+  const allDownloads: any = rangesResponses.reduce(
+    (acc: any[], { data }: any) => {
+      return [...acc, ...data.downloads];
+    },
+    []
+  );
+
+  const lastDayWithData = allDownloads?.findLastIndex(
+    ({ downloads }: any) => downloads > 0
+  );
+  const allDownloadsUntilLastDayWithData = allDownloads.slice(
+    0,
+    lastDayWithData + 1
+  );
+
+  const firstNonZeroIndex = allDownloadsUntilLastDayWithData.findIndex(
+    (p: any) => p.downloads !== 0
+  );
+  if (firstNonZeroIndex > 0) {
+    return allDownloadsUntilLastDayWithData.slice(firstNonZeroIndex);
+  }
+
+  return allDownloadsUntilLastDayWithData;
 };

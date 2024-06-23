@@ -37,4 +37,4 @@ export type MapDataType = {
     score?: number;
     checks?: any;
   };
-}
+};

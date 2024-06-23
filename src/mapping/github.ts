@@ -13,7 +13,7 @@ import { generateLanguageArray } from '@/utils/helpers';
 export const mapGithubData = (
   githubData: GitHubTypes,
   owner: string,
-  readMeData: string | null,
+  readMeData: string | null
 ): GitHubMappingType | undefined => {
   if (githubData && Object.keys(githubData).length > 0) {
     return {
