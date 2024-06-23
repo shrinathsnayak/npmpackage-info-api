@@ -24,8 +24,9 @@ export const getGitHubInfo = async (owner: string, repoName: string) => {
     }
   );
   const readMeData: string | null = await getRepositoryReadMe(owner, repoName);
+  const contributors: any = await getContributors(owner, repoName);
   const { repository } = response?.data?.data || {};
-  return mapGithubData(repository, owner, readMeData);
+  return mapGithubData(repository, owner, readMeData, contributors);
 };
 
 /**
@@ -52,6 +53,33 @@ export const getRepositoryReadMe = async (owner: string, repoName: string) => {
   const { content } = response?.data || {};
   if (content) {
     return base64Decode(content);
+  }
+  return null;
+};
+
+/**
+ * This TypeScript function retrieves contributors of a GitHub repository using the GitHub API and
+ * returns relevant contributor information.
+ * @param {string} owner - The `owner` parameter refers to the username or organization name that owns
+ * the GitHub repository from which you want to retrieve contributors.
+ * @param {string} repoName - The `repoName` parameter in the `getContributors` function refers to the
+ * name of the repository for which you want to retrieve the contributors.
+ * @returns The function `getContributors` returns an array of objects with properties `name`, `url`,
+ * `id`, `contributions`, and `profile_url` for each contributor of the specified GitHub repository. If
+ * there is no data retrieved from the API call, it returns `null`.
+ */
+export const getContributors = async (owner: string, repoName: string) => {
+  const url = `https://api.github.com/repos/${owner}/${repoName}/contributors?per_page=24`;
+  const response: AxiosResponse = await axios.get(url);
+  const { data } = response || {};
+  if (data) {
+    return data?.map((item: any) => ({
+      name: item?.login,
+      url: item?.avatar_url,
+      id: item?.id,
+      contributions: item?.contributions,
+      profile_url: item?.html_url
+    }));
   }
   return null;
 };

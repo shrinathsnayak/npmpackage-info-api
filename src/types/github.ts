@@ -109,6 +109,7 @@ export type GitHubTypes = {
   issues?: AllIssues;
   pullRequests?: AllIssues;
   refs?: Refs;
+  releases?: any;
 };
 
 export interface GitHubMappingType {
@@ -135,7 +136,8 @@ export interface GitHubMappingType {
     unpacked?: number | null;
     createdAt?: number | Date | null;
     updatedAt?: number | Date | null;
-    contributors?: number | undefined;
+    contributorsCount?: number | undefined;
+    contributors?: any;
     languages?: LanguageWithPercentage;
     readMe?: string | null;
     issues?: {
@@ -149,5 +151,6 @@ export interface GitHubMappingType {
       closed?: number;
       merged?: number;
     };
+    releases?: any;
   };
 }

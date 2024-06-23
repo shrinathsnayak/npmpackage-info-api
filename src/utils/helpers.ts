@@ -176,3 +176,10 @@ export const getYearlyDownloads = (downloads: any) => {
     return acc;
   }, []);
 };
+
+export const generateReleases = (downloads: any) => {
+  return {
+    total: downloads?.repository?.releases?.totalCount,
+    data: downloads?.repository?.releases?.nodes
+  };
+};

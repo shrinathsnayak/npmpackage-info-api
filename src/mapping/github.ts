@@ -1,5 +1,5 @@
 import { GitHubMappingType, GitHubTypes } from '@/types/github';
-import { generateLanguageArray } from '@/utils/helpers';
+import { generateLanguageArray, generateReleases } from '@/utils/helpers';
 
 /**
  * The function `mapGithubData` takes in GitHub data and maps it to a specific format, returning
@@ -13,7 +13,8 @@ import { generateLanguageArray } from '@/utils/helpers';
 export const mapGithubData = (
   githubData: GitHubTypes,
   owner: string,
-  readMeData: string | null
+  readMeData: string | null,
+  contributors: any[]
 ): GitHubMappingType | undefined => {
   if (githubData && Object.keys(githubData).length > 0) {
     return {
@@ -43,7 +44,7 @@ export const mapGithubData = (
         branches: githubData?.branches?.totalCount,
         watchers: githubData?.watchers?.totalCount,
         unpacked: githubData?.diskUsage,
-        contributors: githubData?.mentionableUsers?.totalCount,
+        contributorsCount: githubData?.mentionableUsers?.totalCount,
         prs: {
           total: githubData?.allPRs?.totalCount,
           open: githubData?.openPRs?.totalCount,
@@ -56,7 +57,9 @@ export const mapGithubData = (
           closed: githubData?.closedIssues?.totalCount
         },
         languages: generateLanguageArray(githubData?.languages),
-        readMe: readMeData
+        readMe: readMeData,
+        contributors: contributors,
+        releases: generateReleases(githubData?.releases?.nodes?.[0])
       }
     };
   }
@@ -179,7 +182,7 @@ export const graphQuery = (owner: string, repo: string) => {
       releases: refs(refPrefix: "refs/tags/", last: 1) {
         nodes {
           repository {
-            releases(first: 10, orderBy: { field: CREATED_AT, direction: DESC }) {
+            releases(first: 6, orderBy: { field: CREATED_AT, direction: DESC }) {
               totalCount
               nodes {
                 name

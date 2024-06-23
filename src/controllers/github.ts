@@ -1,5 +1,3 @@
-import axios, { AxiosResponse } from 'axios';
-import { graphQuery, mapGithubData } from '@/mapping/github';
 import { getGitHubInfo } from '@/services/github';
 
 /**
