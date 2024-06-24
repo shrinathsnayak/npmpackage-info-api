@@ -17,7 +17,7 @@ import { getProfilePhotoUrl } from '@/utils/gravatar';
  * `url` property is assigned the result of calling the `getProfilePhoto`
  */
 const getUserInfo = (obj: any) => {
-  if (Object.keys(obj).length > 0) {
+  if (obj && Object.keys(obj).length > 0) {
     return {
       name: obj?.name,
       email: obj?.email,
@@ -34,7 +34,7 @@ const getUserInfo = (obj: any) => {
  * and `url`.
  */
 const getMaintainers = (array: any) => {
-  if (array.length > 0) {
+  if (array && array.length > 0) {
     return array.map((item: any) => {
       return {
         name: item?.name,
