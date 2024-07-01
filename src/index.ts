@@ -23,16 +23,14 @@ app.get('/package', async (req: Request, res: Response) => {
 });
 
 app.get('/downloads', async (req: Request, res: Response) => {
-  const {
-    package: packageName,
-    startDate,
-    endDate
-  } = req.query as {
-    package: string;
+  const { packageName, startDate, endDate } = req.query as {
+    packageName: string;
     startDate: string;
     endDate: string;
   };
-  const data = await getPackageDownloads(packageName, startDate, endDate);
+  const data = await getPackageDownloads(packageName, startDate, endDate, {
+    dailyDownloads: true
+  });
   res.status(200).send(data);
 });
 

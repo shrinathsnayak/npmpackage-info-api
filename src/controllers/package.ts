@@ -62,7 +62,8 @@ export const getPackageInfo = async (req: Request) => {
 export const getPackageDownloads = async (
   packageName = '',
   sinceDate = FIRST_AVAILABLE_DATE,
-  endDate = TODAY_DATE
+  endDate = TODAY_DATE,
+  options = {} as any
 ) => {
   const allDailyDownloads: any = await getAllDailyDownloads(
     packageName,
@@ -74,9 +75,9 @@ export const getPackageDownloads = async (
       status: 200,
       data: {
         total: getSumOfDownloads(allDailyDownloads),
-        lastDay: allDailyDownloads[allDailyDownloads.length - 1].downloads,
+        lastDay: allDailyDownloads[allDailyDownloads.length - 1]?.downloads,
         lastDayPreviousWeek:
-          allDailyDownloads[allDailyDownloads.length - 8].downloads,
+          allDailyDownloads[allDailyDownloads.length - 8]?.downloads,
         lastWeek: getSumOfDownloads(allDailyDownloads.slice(-7)),
         previousWeek: getSumOfDownloads(allDailyDownloads.slice(-14, -7)),
         lastMonth: getSumOfDownloads(allDailyDownloads.slice(-30)),
@@ -85,7 +86,8 @@ export const getPackageDownloads = async (
         previousYear: getSumOfDownloads(allDailyDownloads.slice(-730, -365)),
         weekly: getWeeklyDownloads(allDailyDownloads),
         monthly: getMonthlyDownloads(allDailyDownloads),
-        yearly: getYearlyDownloads(allDailyDownloads)
+        yearly: getYearlyDownloads(allDailyDownloads),
+        ...(options?.dailyDownloads && { allDailyDownloads })
       }
     };
   } else {
