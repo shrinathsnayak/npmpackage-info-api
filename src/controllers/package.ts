@@ -70,23 +70,45 @@ export const getPackageDownloads = async (
     sinceDate,
     endDate
   );
+  const oneDayValue: boolean = (allDailyDownloads || [])?.length === 1;
   if (allDailyDownloads) {
     return {
       status: 200,
       data: {
         total: getSumOfDownloads(allDailyDownloads),
-        lastDay: allDailyDownloads[allDailyDownloads.length - 1]?.downloads,
-        lastDayPreviousWeek:
-          allDailyDownloads[allDailyDownloads.length - 8]?.downloads,
-        lastWeek: getSumOfDownloads(allDailyDownloads.slice(-7)),
-        previousWeek: getSumOfDownloads(allDailyDownloads.slice(-14, -7)),
-        lastMonth: getSumOfDownloads(allDailyDownloads.slice(-30)),
-        previousMonth: getSumOfDownloads(allDailyDownloads.slice(-60, -30)),
-        lastYear: getSumOfDownloads(allDailyDownloads.slice(-365)),
-        previousYear: getSumOfDownloads(allDailyDownloads.slice(-730, -365)),
-        weekly: getWeeklyDownloads(allDailyDownloads),
-        monthly: getMonthlyDownloads(allDailyDownloads),
-        yearly: getYearlyDownloads(allDailyDownloads),
+        lastDay: oneDayValue
+          ? allDailyDownloads?.[0]?.downloads
+          : allDailyDownloads[allDailyDownloads.length - 1]?.downloads,
+        lastDayPreviousWeek: oneDayValue
+          ? allDailyDownloads?.[0]?.downloads
+          : allDailyDownloads[allDailyDownloads.length - 8]?.downloads,
+        lastWeek: oneDayValue
+          ? allDailyDownloads?.[0]?.downloads
+          : getSumOfDownloads(allDailyDownloads.slice(-7)),
+        previousWeek: oneDayValue
+          ? allDailyDownloads?.[0]?.downloads
+          : getSumOfDownloads(allDailyDownloads.slice(-14, -7)),
+        lastMonth: oneDayValue
+          ? allDailyDownloads?.[0]?.downloads
+          : getSumOfDownloads(allDailyDownloads.slice(-30)),
+        previousMonth: oneDayValue
+          ? allDailyDownloads?.[0]?.downloads
+          : getSumOfDownloads(allDailyDownloads.slice(-60, -30)),
+        lastYear: oneDayValue
+          ? allDailyDownloads?.[0]?.downloads
+          : getSumOfDownloads(allDailyDownloads.slice(-365)),
+        previousYear: oneDayValue
+          ? allDailyDownloads?.[0]?.downloads
+          : getSumOfDownloads(allDailyDownloads.slice(-730, -365)),
+        weekly: oneDayValue
+          ? allDailyDownloads
+          : getWeeklyDownloads(allDailyDownloads),
+        monthly: oneDayValue
+          ? allDailyDownloads
+          : getMonthlyDownloads(allDailyDownloads),
+        yearly: oneDayValue
+          ? allDailyDownloads
+          : getYearlyDownloads(allDailyDownloads),
         ...(options?.dailyDownloads && { allDailyDownloads })
       }
     };

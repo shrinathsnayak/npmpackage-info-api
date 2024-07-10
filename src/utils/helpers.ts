@@ -81,7 +81,7 @@ export const getListOfRangesSinceStart = (
  * objects passed as the `downloads` parameter.
  */
 export const getSumOfDownloads = (downloads: []) => {
-  return downloads.reduce((acc, { downloads }) => {
+  return downloads?.reduce((acc, { downloads }) => {
     return acc + downloads;
   }, 0);
 };
@@ -99,7 +99,7 @@ export const getWeeklyDownloads = (downloads: any) => {
   const firstMonday: any = downloads.findIndex(
     (d: any) => new Date(d.day).getDay() === 1
   );
-  return downloads.slice(firstMonday).reduce((acc: any, curr: any) => {
+  return downloads?.slice(firstMonday)?.reduce((acc: any, curr: any) => {
     const isMonday = new Date(curr.day).getDay() === 1;
     if (isMonday) {
       return [
@@ -128,7 +128,7 @@ export const getWeeklyDownloads = (downloads: any) => {
  * month.
  */
 export const getMonthlyDownloads = (downloads: any) => {
-  return downloads.reduce((acc: any, curr: any) => {
+  return downloads?.reduce((acc: any, curr: any) => {
     const last = acc[acc.length - 1];
     const isNewMonth =
       !last || new Date(curr.day).getMonth() !== new Date(last.day).getMonth();
@@ -157,7 +157,7 @@ export const getMonthlyDownloads = (downloads: any) => {
  * total downloads for that year.
  */
 export const getYearlyDownloads = (downloads: any) => {
-  return downloads.reduce((acc: any, curr: any) => {
+  return downloads?.reduce((acc: any, curr: any) => {
     const last = acc[acc.length - 1];
     const isNewYear =
       !last ||
