@@ -16,7 +16,7 @@ import { getGitHubInfo } from '@/services/github';
 export function matchGithubRepo(info: any): string {
   const maybeLink = info?.data?.repositoryUrl || info?.data?.homepage;
   if (!maybeLink) {
-    throw new Error(`Cannot find repository or homepage for ${info.name}`);
+    console.error(`Cannot find repository or homepage for ${info.name}`);
   }
   {
     const regex = /git(?:\+https|\+ssh)?:\/\/(?:git@)?github\.com\/(.*)\.git/;
@@ -32,7 +32,7 @@ export function matchGithubRepo(info: any): string {
       return match[1]?.replace(/\.git$/, '');
     }
   }
-  throw new Error(`Cannot find github repo for ${info.name}`);
+  console.error(`Cannot find github repo for ${info.name}`);
 }
 
 /**
@@ -52,7 +52,7 @@ export const getRepositoryInfo = async (npmPkg: string) => {
     }
     const [owner, repo] = pkgGitUrl.split('/');
     return getGitHubInfo(owner, repo);
-  } catch (e) {
-    console.error(e);
+  } catch (err: any) {
+    return err.message;
   }
 };

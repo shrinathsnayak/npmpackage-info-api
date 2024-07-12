@@ -17,7 +17,10 @@ export const getSecurityScore = async (owner: string, repoName: string) => {
     const url = `https://api.securityscorecards.dev/projects/github.com/${owner}/${repoName}`;
     const response: AxiosResponse = await axios.get(url);
     return mapScanData(response?.data);
-  } catch (err) {
-    console.error(err);
+  } catch (err: any) {
+    return {
+      error: err?.response?.status,
+      message: err?.response?.data?.error?.message
+    };
   }
 };

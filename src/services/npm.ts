@@ -19,8 +19,11 @@ export const getPkgInfo = async (pkg: string, version = 'latest') => {
     const url = `https://registry.npmjs.org/${encodeURIComponent(pkg)}/${version}`;
     const response: AxiosResponse = await axios.get(url);
     return mapNpmData(response.data);
-  } catch (e) {
-    console.error(e);
+  } catch (e: any) {
+    return {
+      error: e?.response?.status,
+      message: e?.response?.data?.error?.message
+    };
   }
 };
 
@@ -41,8 +44,11 @@ export const searchPackage = async (pkg: string, size: number = 5) => {
     const url = `http://registry.npmjs.com/-/v1/search?text=${pkg}&size=${size}`;
     const response: AxiosResponse = await axios.get(url);
     return mapNpmSearchData(response?.data);
-  } catch (e) {
-    console.error(e);
+  } catch (e: any) {
+    return {
+      error: e?.response?.status,
+      message: e?.response?.data?.error?.message
+    };
   }
 };
 
