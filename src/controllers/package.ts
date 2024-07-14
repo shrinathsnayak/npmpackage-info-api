@@ -37,7 +37,7 @@ export const getPackageInfo = async (req: Request) => {
     ]);
     const gitHub: any = (await getRepositoryInfo(pkg)) ?? {};
     const securityScore: any =
-      (await getSecurityScore(gitHub?.data?.owner, gitHub?.data?.name)) || null;
+      (await getSecurityScore(gitHub?.data?.owner, gitHub?.data?.name)) || {};
     return { npm: pkg, bundle: bundlephobia, gitHub, securityScore };
   } catch (err: any) {
     return err.message;

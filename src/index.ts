@@ -6,13 +6,24 @@ import { getGitHubInfo } from './services/github';
 import { getPkgInfo, searchPackage } from './services/npm';
 import { getHealth } from './controllers/health';
 import { getSecurityScore } from './services/securityscan';
+import { terminate } from './utils/error';
 
 dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT || 8000;
 
-app.get('/', (req: Request, res: Response) => {
+const exitHandler = terminate(app, {
+  coredump: false,
+  timeout: 500
+});
+
+process.on('uncaughtException', exitHandler(1, 'Unexpected Error'));
+process.on('unhandledRejection', exitHandler(1, 'Unhandled Promise'));
+process.on('SIGTERM', exitHandler(0, 'SIGTERM'));
+process.on('SIGINT', exitHandler(0, 'SIGINT'));
+
+app.get('/_health', (req: Request, res: Response) => {
   const data = getHealth();
   res.status(200).send(data);
 });
