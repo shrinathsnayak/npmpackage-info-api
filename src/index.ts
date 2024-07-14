@@ -29,8 +29,24 @@ app.get('/_health', (req: Request, res: Response) => {
 });
 
 app.get('/package', async (req: Request, res: Response) => {
-  const data = await getPackageInfo(req);
-  res.status(200).send(data);
+  const { q } = req?.query as { q: string };
+
+  if (!q) {
+    res.send(404).send({
+      status: 404,
+      message: 'Project name missing'
+    });
+  } else {
+    try {
+      const data = await getPackageInfo(req);
+      res.status(200).send(data);
+    } catch (err) {
+      res.status(500).send({
+        status: 500,
+        message: 'Internal server error'
+      });
+    }
+  }
 });
 
 app.get('/downloads', async (req: Request, res: Response) => {
@@ -39,10 +55,25 @@ app.get('/downloads', async (req: Request, res: Response) => {
     startDate: string;
     endDate: string;
   };
-  const data = await getPackageDownloads(packageName, startDate, endDate, {
-    dailyDownloads: true
-  });
-  res.status(200).send(data);
+
+  if (!packageName) {
+    res.send(404).send({
+      status: 404,
+      message: 'Project name missing'
+    });
+  } else {
+    try {
+      const data = await getPackageDownloads(packageName, startDate, endDate, {
+        dailyDownloads: true
+      });
+      res.status(200).send(data);
+    } catch (err) {
+      res.status(500).send({
+        status: 500,
+        message: 'Internal server error'
+      });
+    }
+  }
 });
 
 app.get('/npm', async (req: Request, res: Response) => {
