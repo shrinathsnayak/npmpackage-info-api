@@ -183,3 +183,71 @@ export const generateReleases = (downloads: any) => {
     data: downloads?.repository?.releases?.nodes
   };
 };
+
+/**
+ * The function getRandomApiKey selects a random API key from a given array of API keys.
+ * @param {string[]} apiKeys - An array of strings containing API keys.
+ * @returns A random API key from the provided array of API keys.
+ */
+export const getRandomApiKey = (apiKeys: string[]): string => {
+  return apiKeys[Math.floor(Math.random() * apiKeys.length)];
+};
+
+/**
+ * The function `getTransformedScore` takes a score object as input and returns a transformed object
+ * with scores for each key.
+ * @param {any} score - The `getTransformedScore` function takes an input parameter `score`, which is
+ * expected to be an object containing key-value pairs. Each key in the `score` object represents a
+ * specific score, and the corresponding value is an object with a `score` property.
+ * @returns The `getTransformedScore` function is returning an object where the keys are extracted from
+ * the input `score` object, and each key in the returned object contains an object with a `score`
+ * property corresponding to the `score` property of the same key in the input `score` object.
+ */
+export const getTransformedScore = (score: any) => {
+  if (!score) {
+    console.error('Invalid input structure. Missing score or issues.');
+    return null;
+  }
+
+  return Object.keys(score).reduce((acc: any, key: any) => {
+    if (key) {
+      acc[key] = score[key].score
+        ? parseFloat((score[key].score * 100).toFixed(1))
+        : 0;
+      return acc;
+    }
+  }, {});
+};
+
+/**
+ * The function `getTransformedAlerts` takes an array of alerts, organizes them by type, and returns a
+ * transformed structure.
+ * @param {any} alerts - The `getTransformedAlerts` function takes an array of `alerts` as input. Each
+ * `alert` object in the array should have a `type` and a `value` property. The `value` property should
+ * contain `severity`, `category`, `label`, `description`, and
+ * @returns The function `getTransformedAlerts` takes an array of alerts as input and transforms it
+ * into an object where alerts are grouped by their type. Each alert object contains the severity,
+ * category, label, description, and locations. If the input alerts are missing, an error message is
+ * logged and `null` is returned.
+ */
+export const getTransformedAlerts = (alerts: any) => {
+  if (!alerts) {
+    console.error('Invalid input structure. Missing score or issues.');
+    return null;
+  }
+
+  return alerts.reduce((acc: any, issue: any) => {
+    const { type, value } = issue;
+    if (!acc[type]) {
+      acc[type] = [];
+    }
+    acc[type].push({
+      severity: value.severity,
+      category: value.category,
+      label: value.label,
+      description: value.description,
+      locations: value.locations?.map((location: any) => location.value)
+    });
+    return acc;
+  }, {});
+};

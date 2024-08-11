@@ -10,6 +10,7 @@ import {
   getWeeklyDownloads,
   getYearlyDownloads
 } from '@/utils/helpers';
+import { getVulnerabilityScore } from '@/services/socket';
 
 /**
  * The function `getPackageInfo` retrieves information about a package from npm, BundlePhobia, and
@@ -38,7 +39,17 @@ export const getPackageInfo = async (req: Request) => {
     const gitHub: any = (await getRepositoryInfo(pkg)) ?? {};
     const securityScore: any =
       (await getSecurityScore(gitHub?.data?.owner, gitHub?.data?.name)) || {};
-    return { npm: pkg, bundle: bundlephobia, gitHub, securityScore };
+    const vulnerabilityScore: any = await getVulnerabilityScore(
+      pkg?.data?.name,
+      pkg?.data?.version
+    );
+    return {
+      npm: pkg,
+      bundle: bundlephobia,
+      gitHub,
+      securityScore,
+      vulnerabilityScore
+    };
   } catch (err: any) {
     return err.message;
   }
