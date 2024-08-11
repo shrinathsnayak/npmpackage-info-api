@@ -211,9 +211,24 @@ export const getTransformedScore = (score: any) => {
 
   return Object.keys(score).reduce((acc: any, key: any) => {
     if (key) {
-      acc[key] = score[key].score
-        ? parseFloat((score[key].score * 100).toFixed(1))
-        : 0;
+      acc[key] = {
+        score: score[key].score
+          ? parseFloat((score[key].score * 100).toFixed(1))
+          : 0,
+        component:
+          score[key]?.components &&
+          Object.keys(score[key].components).reduce(
+            (compAcc: any, compKey: any) => {
+              compAcc[compKey] = score[key].components[compKey].score
+                ? parseFloat(
+                  (score[key].components[compKey].score * 100).toFixed(1)
+                )
+                : 0;
+              return compAcc;
+            },
+            {}
+          )
+      };
       return acc;
     }
   }, {});
