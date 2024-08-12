@@ -32,7 +32,7 @@ export function matchGithubRepo(info: any): string {
       return match[1]?.replace(/\.git$/, '');
     }
   }
-  throw new Error(`Cannot find github repo for ${info.name}`);
+  return '';
 }
 
 /**
