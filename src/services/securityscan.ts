@@ -1,5 +1,6 @@
-import { mapScanData } from '@/mapping/securityscan';
 import axios, { AxiosResponse } from 'axios';
+import { mapScanData } from '@/mapping/securityscan';
+import { tryCatchWrapper } from '@/utils/error';
 
 /**
  * The function `getSecurityScore` retrieves the security score of a GitHub repository using the
@@ -12,15 +13,10 @@ import axios, { AxiosResponse } from 'axios';
  * `https://api.securityscorecards.dev/projects/github.com/` for the specified
  * `owner` and `repoName`.
  */
-export const getSecurityScore = async (owner: string, repoName: string) => {
-  try {
+export const getSecurityScore = tryCatchWrapper(
+  async (owner: string, repoName: string) => {
     const url = `https://api.securityscorecards.dev/projects/github.com/${owner}/${repoName}`;
     const response: AxiosResponse = await axios.get(url);
     return mapScanData(response?.data);
-  } catch (err: any) {
-    return {
-      error: err?.response?.status,
-      message: err?.response?.data?.error?.message
-    };
   }
-};
+);

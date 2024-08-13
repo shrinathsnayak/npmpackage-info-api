@@ -11,6 +11,7 @@ import {
   getYearlyDownloads
 } from '@/utils/helpers';
 import { getVulnerabilityScore } from '@/services/socket';
+import { tryCatchWrapper } from '@/utils/error';
 
 /**
  * The function `getPackageInfo` retrieves information about a package from npm, BundlePhobia, and
@@ -23,38 +24,31 @@ import { getVulnerabilityScore } from '@/services/socket';
  * the process, the function will return the error message. If the query parameter `q` is not provided,
  * it will return a status of 400 and a message indicating that the package was not found.
  */
-export const getPackageInfo = async (req: Request) => {
-  try {
-    const { q }: any = req.query;
-    if (!q) {
-      return {
-        status: 400,
-        message: 'Package not found'
-      };
-    }
-    const [pkg, bundlephobia] = await Promise.all([
-      getPkgInfo(q),
-      getBundlePhobiaData(q)
-    ]);
-    const gitHub: any = (await getRepositoryInfo(pkg)) ?? {};
-    const securityScore: any =
-      (await getSecurityScore(gitHub?.data?.owner, gitHub?.data?.name)) || {};
-    const vulnerabilityScore: any = await getVulnerabilityScore(
-      pkg?.data?.name,
-      pkg?.data?.version
-    );
+export const getPackageInfo = tryCatchWrapper(async (req: Request) => {
+  const { q }: any = req.query;
+  if (!q) {
     return {
-      npm: pkg,
-      bundle: bundlephobia,
-      gitHub,
-      securityScore,
-      vulnerabilityScore
+      status: 400,
+      message: 'Package not found'
     };
-  } catch (err: any) {
-    console.log(err);
-    return err.message;
   }
-};
+  const [npm, bundle] = await Promise.all([
+    getPkgInfo(q),
+    getBundlePhobiaData(q)
+  ]);
+  const gitHub: any = (await getRepositoryInfo(npm)) ?? {};
+  const [securityScore, vulnerabilityScore] = await Promise.all([
+    getSecurityScore(gitHub?.data?.owner, gitHub?.data?.name) || {},
+    getVulnerabilityScore(npm?.data?.name, npm?.data?.version)
+  ]);
+  return {
+    npm,
+    bundle,
+    gitHub,
+    securityScore,
+    vulnerabilityScore
+  };
+});
 
 /**
  * The function `getPackageDownloads` retrieves and calculates various statistics related to package
@@ -71,63 +65,65 @@ export const getPackageInfo = async (req: Request) => {
  * which means it will fetch the downloads data up to the current date.
  * @returns The `getPackageDownloads` function is returning an object.
  */
-export const getPackageDownloads = async (
-  packageName = '',
-  sinceDate = FIRST_AVAILABLE_DATE,
-  endDate = TODAY_DATE,
-  options = {} as any
-) => {
-  const allDailyDownloads: any = await getAllDailyDownloads(
-    packageName,
-    sinceDate,
-    endDate
-  );
-  const oneDayValue: boolean = (allDailyDownloads || [])?.length === 1;
-  if (allDailyDownloads) {
-    return {
-      status: 200,
-      data: {
-        total: getSumOfDownloads(allDailyDownloads),
-        lastDay: oneDayValue
-          ? allDailyDownloads?.[0]?.downloads
-          : allDailyDownloads[allDailyDownloads.length - 1]?.downloads,
-        lastDayPreviousWeek: oneDayValue
-          ? allDailyDownloads?.[0]?.downloads
-          : allDailyDownloads[allDailyDownloads.length - 8]?.downloads,
-        lastWeek: oneDayValue
-          ? allDailyDownloads?.[0]?.downloads
-          : getSumOfDownloads(allDailyDownloads.slice(-7)),
-        previousWeek: oneDayValue
-          ? allDailyDownloads?.[0]?.downloads
-          : getSumOfDownloads(allDailyDownloads.slice(-14, -7)),
-        lastMonth: oneDayValue
-          ? allDailyDownloads?.[0]?.downloads
-          : getSumOfDownloads(allDailyDownloads.slice(-30)),
-        previousMonth: oneDayValue
-          ? allDailyDownloads?.[0]?.downloads
-          : getSumOfDownloads(allDailyDownloads.slice(-60, -30)),
-        lastYear: oneDayValue
-          ? allDailyDownloads?.[0]?.downloads
-          : getSumOfDownloads(allDailyDownloads.slice(-365)),
-        previousYear: oneDayValue
-          ? allDailyDownloads?.[0]?.downloads
-          : getSumOfDownloads(allDailyDownloads.slice(-730, -365)),
-        weekly: oneDayValue
-          ? allDailyDownloads
-          : getWeeklyDownloads(allDailyDownloads),
-        monthly: oneDayValue
-          ? allDailyDownloads
-          : getMonthlyDownloads(allDailyDownloads),
-        yearly: oneDayValue
-          ? allDailyDownloads
-          : getYearlyDownloads(allDailyDownloads),
-        ...(options?.dailyDownloads && { allDailyDownloads })
-      }
-    };
-  } else {
-    return {
-      status: 404,
-      message: 'Download data not found!'
-    };
+export const getPackageDownloads = tryCatchWrapper(
+  async (
+    packageName = '',
+    sinceDate = FIRST_AVAILABLE_DATE,
+    endDate = TODAY_DATE,
+    options = {} as any
+  ) => {
+    const allDailyDownloads: any = await getAllDailyDownloads(
+      packageName,
+      sinceDate,
+      endDate
+    );
+    const oneDayValue: boolean = (allDailyDownloads || [])?.length === 1;
+    if (allDailyDownloads) {
+      return {
+        status: 200,
+        data: {
+          total: getSumOfDownloads(allDailyDownloads),
+          lastDay: oneDayValue
+            ? allDailyDownloads?.[0]?.downloads
+            : allDailyDownloads[allDailyDownloads.length - 1]?.downloads,
+          lastDayPreviousWeek: oneDayValue
+            ? allDailyDownloads?.[0]?.downloads
+            : allDailyDownloads[allDailyDownloads.length - 8]?.downloads,
+          lastWeek: oneDayValue
+            ? allDailyDownloads?.[0]?.downloads
+            : getSumOfDownloads(allDailyDownloads.slice(-7)),
+          previousWeek: oneDayValue
+            ? allDailyDownloads?.[0]?.downloads
+            : getSumOfDownloads(allDailyDownloads.slice(-14, -7)),
+          lastMonth: oneDayValue
+            ? allDailyDownloads?.[0]?.downloads
+            : getSumOfDownloads(allDailyDownloads.slice(-30)),
+          previousMonth: oneDayValue
+            ? allDailyDownloads?.[0]?.downloads
+            : getSumOfDownloads(allDailyDownloads.slice(-60, -30)),
+          lastYear: oneDayValue
+            ? allDailyDownloads?.[0]?.downloads
+            : getSumOfDownloads(allDailyDownloads.slice(-365)),
+          previousYear: oneDayValue
+            ? allDailyDownloads?.[0]?.downloads
+            : getSumOfDownloads(allDailyDownloads.slice(-730, -365)),
+          weekly: oneDayValue
+            ? allDailyDownloads
+            : getWeeklyDownloads(allDailyDownloads),
+          monthly: oneDayValue
+            ? allDailyDownloads
+            : getMonthlyDownloads(allDailyDownloads),
+          yearly: oneDayValue
+            ? allDailyDownloads
+            : getYearlyDownloads(allDailyDownloads),
+          ...(options?.dailyDownloads && { allDailyDownloads })
+        }
+      };
+    } else {
+      return {
+        status: 404,
+        message: 'Download data not found!'
+      };
+    }
   }
-};
+);

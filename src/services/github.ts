@@ -1,6 +1,7 @@
-import { graphQuery, mapGithubData } from '@/mapping/github';
-import { base64Decode } from '@/utils/helpers';
 import axios, { AxiosResponse } from 'axios';
+import { graphQuery, mapGithubData } from '@/mapping/github';
+import { tryCatchWrapper } from '@/utils/error';
+import { base64Decode } from '@/utils/helpers';
 
 /**
  * The function `getGitHubInfo` retrieves information about a GitHub repository using a GraphQL query.
@@ -11,8 +12,8 @@ import axios, { AxiosResponse } from 'axios';
  * @returns The function `getGitHubInfo` is returning the mapped data from the GitHub repository
  * specified by the owner and repoName parameters.
  */
-export const getGitHubInfo = async (owner: string, repoName: string) => {
-  try {
+export const getGitHubInfo = tryCatchWrapper(
+  async (owner: string, repoName: string) => {
     if (!owner && !repoName) {
       return null;
     }
@@ -34,11 +35,8 @@ export const getGitHubInfo = async (owner: string, repoName: string) => {
     const contributors: any = await getContributors(owner, repoName);
     const { repository } = response?.data?.data || {};
     return mapGithubData(repository, owner, readMeData, contributors);
-  } catch (err) {
-    console.error(`Error fetching GitHub repository info: ${err}`);
-    return null;
   }
-};
+);
 
 /**
  * This TypeScript function retrieves the README content of a GitHub repository using the GitHub API.
@@ -52,8 +50,8 @@ export const getGitHubInfo = async (owner: string, repoName: string) => {
  * the `base64Decode` function. If the content is successfully decoded, it is returned; otherwise,
  * `null` is returned.
  */
-export const getRepositoryReadMe = async (owner: string, repoName: string) => {
-  try {
+export const getRepositoryReadMe = tryCatchWrapper(
+  async (owner: string, repoName: string) => {
     if (!owner && !repoName) {
       return null;
     }
@@ -70,11 +68,8 @@ export const getRepositoryReadMe = async (owner: string, repoName: string) => {
       return base64Decode(content);
     }
     return null;
-  } catch (err: any) {
-    console.error(err.message);
-    return null;
   }
-};
+);
 
 /**
  * This TypeScript function retrieves contributors of a GitHub repository using the GitHub API and
@@ -87,18 +82,20 @@ export const getRepositoryReadMe = async (owner: string, repoName: string) => {
  * `id`, `contributions`, and `profile_url` for each contributor of the specified GitHub repository. If
  * there is no data retrieved from the API call, it returns `null`.
  */
-export const getContributors = async (owner: string, repoName: string) => {
-  const url = `https://api.github.com/repos/${owner}/${repoName}/contributors?per_page=24`;
-  const response: AxiosResponse = await axios.get(url);
-  const { data } = response || {};
-  if (data) {
-    return data?.map((item: any) => ({
-      name: item?.login,
-      url: item?.avatar_url,
-      id: item?.id,
-      contributions: item?.contributions,
-      profile_url: item?.html_url
-    }));
+export const getContributors = tryCatchWrapper(
+  async (owner: string, repoName: string) => {
+    const url = `https://api.github.com/repos/${owner}/${repoName}/contributors?per_page=24`;
+    const response: AxiosResponse = await axios.get(url);
+    const { data } = response || {};
+    if (data) {
+      return data?.map((item: any) => ({
+        name: item?.login,
+        url: item?.avatar_url,
+        id: item?.id,
+        contributions: item?.contributions,
+        profile_url: item?.html_url
+      }));
+    }
+    return null;
   }
-  return null;
-};
+);

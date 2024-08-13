@@ -6,7 +6,9 @@ import { getGitHubInfo } from './services/github';
 import { getPkgInfo, searchPackage } from './services/npm';
 import { getHealth } from './controllers/health';
 import { getSecurityScore } from './services/securityscan';
-import { terminate } from './utils/error';
+import { terminate, tryCatchWrapper } from './utils/error';
+import { handleMissingParameter } from './utils/error';
+import messages from './constants/messages';
 
 dotenv.config();
 
@@ -28,114 +30,75 @@ app.get('/_health', (req: Request, res: Response) => {
   res.status(200).send(data);
 });
 
-app.get('/package', async (req: Request, res: Response) => {
+app.get('/package', (req: Request, res: Response) => {
   const { q } = req?.query as { q: string };
 
   if (!q) {
-    res.send(404).send({
-      status: 404,
-      message: 'Project name missing'
-    });
+    handleMissingParameter(res, 404, messages.errors.PROJECT_NAME_MISSING);
   } else {
-    try {
+    tryCatchWrapper(async () => {
       const data = await getPackageInfo(req);
       res.status(200).send(data);
-    } catch (err) {
-      res.status(500).send({
-        status: 500,
-        message: 'Internal server error'
-      });
-    }
+    })();
   }
 });
 
-app.get('/downloads', async (req: Request, res: Response) => {
-  const { packageName, startDate, endDate } = req.query as {
+app.get('/downloads', (req: Request, res: Response) => {
+  const { packageName, startDate, endDate, getDailyDownloads = true } = req.query as {
     packageName: string;
     startDate: string;
     endDate: string;
+    getDailyDownloads: any;
   };
 
   if (!packageName) {
-    res.send(404).send({
-      status: 404,
-      message: 'Project name missing'
-    });
+    handleMissingParameter(res, 404, messages.errors.PROJECT_NAME_MISSING);
   } else {
-    try {
+    tryCatchWrapper(async () => {
       const data = await getPackageDownloads(packageName, startDate, endDate, {
-        dailyDownloads: true
+        dailyDownloads: getDailyDownloads
       });
       res.status(200).send(data);
-    } catch (err) {
-      res.status(500).send({
-        status: 500,
-        message: 'Internal server error'
-      });
-    }
+    })();
   }
 });
 
-app.get('/npm', async (req: Request, res: Response) => {
+app.get('/npm', (req: Request, res: Response) => {
   const { project, version = 'latest' } = req.query as {
     project: string;
     version: string;
   };
   if (!project) {
-    res.send(404).send({
-      status: 404,
-      message: 'Project name missing'
-    });
+    handleMissingParameter(res, 404, messages.errors.PROJECT_NAME_MISSING);
   } else {
-    try {
+    tryCatchWrapper(async () => {
       const data = await getPkgInfo(project, version);
       res.send(data);
-    } catch (err) {
-      res.status(500).send({
-        status: 500,
-        message: 'Internal server error'
-      });
-    }
+    })();
   }
 });
 
-app.get('/github', async (req: Request, res: Response) => {
+app.get('/github', (req: Request, res: Response) => {
   const { owner, repo } = req?.query as { owner: string; repo: string };
   if (!owner || !repo) {
-    res.send(404).send({
-      status: 404,
-      message: 'Either owner or repo is missing.'
-    });
+    handleMissingParameter(res, 404, messages.errors.OWNER_OR_REPO_MISSING);
   } else {
-    try {
+    tryCatchWrapper(async () => {
       const data = await getGitHubInfo(owner, repo);
       res.send(data);
-    } catch (err) {
-      res.status(500).send({
-        status: 500,
-        message: 'Internal server error'
-      });
-    }
+    })();
   }
 });
 
 app.get('/scan', async (req: Request, res: Response) => {
   const { owner, repo } = req?.query as { owner: string; repo: string };
   if (!owner || !repo) {
-    res.send(404).send({
-      status: 404,
-      message: 'Either owner or repo is missing.'
-    });
+    handleMissingParameter(res, 404, messages.errors.OWNER_OR_REPO_MISSING);
   } else {
-    try {
+    tryCatchWrapper(async () => {
       const data = await getSecurityScore(owner, repo);
       res.send(data);
-    } catch (err) {
-      res.status(500).send({
-        status: 500,
-        message: 'Internal server error'
-      });
-    }
+    })();
   }
 });
 
@@ -143,20 +106,12 @@ app.get('/search', async (req: Request, res: Response) => {
   const { q, size } = req?.query as { q?: string; size?: number };
 
   if (!q) {
-    res.send(404).send({
-      status: 404,
-      message: 'Query is missing.'
-    });
+    handleMissingParameter(res, 404, messages.errors.SEARCH_QUERY_MISSING);
   } else {
-    try {
+    tryCatchWrapper(async () => {
       const data = await searchPackage(q, size);
       res.send(data);
-    } catch (err) {
-      res.status(500).send({
-        status: 500,
-        message: 'Internal server error'
-      });
-    }
+    })();
   }
 });
 

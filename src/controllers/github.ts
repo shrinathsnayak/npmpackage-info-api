@@ -1,4 +1,5 @@
 import { getGitHubInfo } from '@/services/github';
+import { tryCatchWrapper } from '@/utils/error';
 
 /**
  * This TypeScript function extracts the GitHub repository name from a given object containing
@@ -43,16 +44,12 @@ export function matchGithubRepo(info: any): string {
  * @returns The function `getRepositoryInfo` returns a Promise that resolves to the result of
  * `mapGithubData(repository)`.
  */
-export const getRepositoryInfo = async (npmPkg: string) => {
-  try {
-    const pkgGitUrl = matchGithubRepo(npmPkg);
-    if (!pkgGitUrl) {
-      console.error(`Cannot find github repo for ${npmPkg}`);
-      return;
-    }
-    const [owner, repo] = pkgGitUrl.split('/');
-    return getGitHubInfo(owner, repo);
-  } catch (err: any) {
-    return err.message;
+export const getRepositoryInfo = tryCatchWrapper(async (npmPkg: string) => {
+  const pkgGitUrl = matchGithubRepo(npmPkg);
+  if (!pkgGitUrl) {
+    console.error(`Cannot find github repo for ${npmPkg}`);
+    return;
   }
-};
+  const [owner, repo] = pkgGitUrl.split('/');
+  return getGitHubInfo(owner, repo);
+});

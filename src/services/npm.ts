@@ -1,6 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import { mapNpmData, mapNpmSearchData } from '@/mapping/npm';
 import { getListOfRangesSinceStart } from '@/utils/helpers';
+import { tryCatchWrapper } from '@/utils/error';
 
 /**
  * The function `getPkgInfo` fetches information about a specified npm package and version from the npm
@@ -14,18 +15,13 @@ import { getListOfRangesSinceStart } from '@/utils/helpers';
  * @returns The function `getPkgInfo` is returning the result of the `mapNpmData` function applied to
  * the data received from the npm registry API for the specified package and version.
  */
-export const getPkgInfo = async (pkg: string, version = 'latest') => {
-  try {
+export const getPkgInfo = tryCatchWrapper(
+  async (pkg: string, version = 'latest') => {
     const url = `https://registry.npmjs.org/${encodeURIComponent(pkg)}/${version}`;
     const response: AxiosResponse = await axios.get(url);
     return mapNpmData(response.data);
-  } catch (e: any) {
-    return {
-      error: e?.response?.status,
-      message: e?.response?.data?.error?.message
-    };
   }
-};
+);
 
 /**
  * The `searchPackage` function in TypeScript searches for npm packages using the npm registry API and
@@ -39,53 +35,48 @@ export const getPkgInfo = async (pkg: string, version = 'latest') => {
  * @returns The `searchPackage` function returns the result of mapping the npm search data retrieved
  * from the npm registry API.
  */
-export const searchPackage = async (pkg: string, size: number = 5) => {
-  try {
+export const searchPackage = tryCatchWrapper(
+  async (pkg: string, size: number = 5) => {
     const url = `http://registry.npmjs.com/-/v1/search?text=${pkg}&size=${size}`;
     const response: AxiosResponse = await axios.get(url);
     return mapNpmSearchData(response?.data);
-  } catch (e: any) {
-    return {
-      error: e?.response?.status,
-      message: e?.response?.data?.error?.message
-    };
   }
-};
+);
 
-export const getAllDailyDownloads = async (
-  packageName: string,
-  sinceDate: string,
-  endDate: string
-) => {
-  const ranges = getListOfRangesSinceStart(sinceDate, endDate);
-  const rangesResponses = await Promise.all(
-    ranges.map(({ start, end }) => {
-      return axios.get(
-        `https://api.npmjs.org/downloads/range/${start}:${end}/${packageName}`
-      );
-    })
-  );
-  const allDownloads: any = rangesResponses.reduce(
-    (acc: any[], { data }: any) => {
-      return [...acc, ...data.downloads];
-    },
-    []
-  );
+/* The `getAllDailyDownloads` function is a function that retrieves daily download data for a specified
+npm package within a given date range. */
+export const getAllDailyDownloads = tryCatchWrapper(
+  async (packageName: string, sinceDate: string, endDate: string) => {
+    const ranges = getListOfRangesSinceStart(sinceDate, endDate);
+    const rangesResponses = await Promise.all(
+      ranges.map(({ start, end }) => {
+        return axios.get(
+          `https://api.npmjs.org/downloads/range/${start}:${end}/${packageName}`
+        );
+      })
+    );
+    const allDownloads: any = rangesResponses.reduce(
+      (acc: any[], { data }: any) => {
+        return [...acc, ...data.downloads];
+      },
+      []
+    );
 
-  const lastDayWithData = allDownloads?.findLastIndex(
-    ({ downloads }: any) => downloads > 0
-  );
-  const allDownloadsUntilLastDayWithData = allDownloads.slice(
-    0,
-    lastDayWithData + 1
-  );
+    const lastDayWithData = allDownloads?.findLastIndex(
+      ({ downloads }: any) => downloads > 0
+    );
+    const allDownloadsUntilLastDayWithData = allDownloads.slice(
+      0,
+      lastDayWithData + 1
+    );
 
-  const firstNonZeroIndex = allDownloadsUntilLastDayWithData.findIndex(
-    (p: any) => p.downloads !== 0
-  );
-  if (firstNonZeroIndex > 0) {
-    return allDownloadsUntilLastDayWithData.slice(firstNonZeroIndex);
+    const firstNonZeroIndex = allDownloadsUntilLastDayWithData.findIndex(
+      (p: any) => p.downloads !== 0
+    );
+    if (firstNonZeroIndex > 0) {
+      return allDownloadsUntilLastDayWithData.slice(firstNonZeroIndex);
+    }
+
+    return allDownloadsUntilLastDayWithData;
   }
-
-  return allDownloadsUntilLastDayWithData;
-};
+);

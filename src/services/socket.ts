@@ -4,6 +4,7 @@ import {
   getTransformedAlerts,
   getTransformedScore
 } from '@/utils/helpers';
+import { tryCatchWrapper } from '@/utils/error';
 
 /**
  * The function `getAPIKey` generates a random API key from an array and encodes it using Base64.
@@ -11,7 +12,7 @@ import {
  * Base64 encoded value of the apiKey concatenated with itself using a colon as a separator.
  */
 export const getAPIKey = (): string => {
-  const API_KEYS_ARRAY: any = [process.env.SOCKET_DEV_API_KEY_1];
+  const API_KEYS_ARRAY: any[] = [process.env.SOCKET_DEV_API_KEY_1];
   const apiKey: string = getRandomApiKey(API_KEYS_ARRAY);
   return `Basic ${btoa(`${apiKey}:${apiKey}`)}`;
 };
@@ -29,11 +30,8 @@ export const getAPIKey = (): string => {
  * data obtained from the API response, or an object containing error information such as the status
  * code and error message if an error occurs during the API request.
  */
-export const getVulnerabilityScore = async (
-  packageName: string,
-  version: string
-) => {
-  try {
+export const getVulnerabilityScore = tryCatchWrapper(
+  async (packageName: string, version: string) => {
     const URL = `https://api.socket.dev/v0/npm/${packageName}/${version}`;
     const scoreResponse: AxiosResponse = await axios.get(`${URL}/score`, {
       headers: {
@@ -45,13 +43,8 @@ export const getVulnerabilityScore = async (
       status: 200,
       data: getTransformedScore(scoreResponse?.data)
     };
-  } catch (err: any) {
-    return {
-      error: err?.response?.status,
-      message: err?.response?.data?.error?.message
-    };
   }
-};
+);
 
 /**
  * This TypeScript function fetches alerts for a specific npm package and version from an API and
@@ -65,8 +58,8 @@ export const getVulnerabilityScore = async (
  * an object containing error details such as the status code and error message if an error occurs
  * during the API request.
  */
-export const getAlerts = async (packageName: string, version: string) => {
-  try {
+export const getAlerts = tryCatchWrapper(
+  async (packageName: string, version: string) => {
     const URL = `https://api.socket.dev/v0/npm/${packageName}/${version}/issues`;
     const alertsResponse: AxiosResponse = await axios.get(URL, {
       headers: {
@@ -75,10 +68,5 @@ export const getAlerts = async (packageName: string, version: string) => {
       }
     });
     return getTransformedAlerts(alertsResponse?.data);
-  } catch (err: any) {
-    return {
-      error: err?.response?.status,
-      message: err?.response?.data?.error?.message
-    };
   }
-};
+);
