@@ -12,21 +12,32 @@ import axios, { AxiosResponse } from 'axios';
  * specified by the owner and repoName parameters.
  */
 export const getGitHubInfo = async (owner: string, repoName: string) => {
-  const query: string = graphQuery(owner, repoName);
-  const url = `https://api.github.com/graphql`;
-  const response: AxiosResponse = await axios.post(
-    url,
-    { query },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`
-      }
+  try {
+    if (!owner && !repoName) {
+      return null;
     }
-  );
-  const readMeData: string | null = await getRepositoryReadMe(owner, repoName);
-  const contributors: any = await getContributors(owner, repoName);
-  const { repository } = response?.data?.data || {};
-  return mapGithubData(repository, owner, readMeData, contributors);
+    const query: string = graphQuery(owner, repoName);
+    const url = `https://api.github.com/graphql`;
+    const response: AxiosResponse = await axios.post(
+      url,
+      { query },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`
+        }
+      }
+    );
+    const readMeData: string | null = await getRepositoryReadMe(
+      owner,
+      repoName
+    );
+    const contributors: any = await getContributors(owner, repoName);
+    const { repository } = response?.data?.data || {};
+    return mapGithubData(repository, owner, readMeData, contributors);
+  } catch (err) {
+    console.error(`Error fetching GitHub repository info: ${err}`);
+    return null;
+  }
 };
 
 /**
@@ -42,19 +53,27 @@ export const getGitHubInfo = async (owner: string, repoName: string) => {
  * `null` is returned.
  */
 export const getRepositoryReadMe = async (owner: string, repoName: string) => {
-  const url = `https://api.github.com/repos/${owner}/${repoName}/readme`;
-  const response: AxiosResponse = await axios.get(url, {
-    headers: {
-      Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-      'X-GitHub-Api-Version': '2022-11-28'
+  try {
+    if (!owner && !repoName) {
+      return null;
     }
-  });
-  const { content } = response?.data || {};
-  if (content) {
-    return base64Decode(content);
+    const url = `https://api.github.com/repos/${owner}/${repoName}/readme`;
+    const response: AxiosResponse = await axios.get(url, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        'X-GitHub-Api-Version': '2022-11-28'
+      }
+    });
+    const { content } = response?.data || {};
+    if (content) {
+      return base64Decode(content);
+    }
+    return null;
+  } catch (err: any) {
+    console.error(err.message);
+    return null;
   }
-  return null;
 };
 
 /**

@@ -51,6 +51,7 @@ export const getPackageInfo = async (req: Request) => {
       vulnerabilityScore
     };
   } catch (err: any) {
+    console.log(err);
     return err.message;
   }
 };
