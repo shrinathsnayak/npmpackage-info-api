@@ -201,3 +201,32 @@ export const graphQuery = (owner: string, repo: string) => {
   }
   `.replace(/\s+/g, ' ');
 };
+
+/**
+ * Generates a GraphQL query string to fetch security vulnerabilities for a given NPM package.
+ *
+ * @param packageName - The name of the NPM package to query for vulnerabilities.
+ * @returns A GraphQL query string to fetch security vulnerabilities.
+ */
+export const graphQueryForVulnerabilities = (packageName: string) => {
+  return `query {
+  securityVulnerabilities(package: "${packageName}", ecosystem: NPM, first: 50) {
+    edges {
+      node {
+        package {
+          name
+        }
+        vulnerableVersionRange
+        severity
+        advisory {
+          description
+          references {
+            url
+          }
+        }
+      }
+    }
+  }
+}
+  `.replace(/\s+/g, ' ');
+};

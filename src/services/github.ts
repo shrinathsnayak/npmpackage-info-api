@@ -1,7 +1,12 @@
 import axios, { AxiosResponse } from 'axios';
-import { graphQuery, mapGithubData } from '@/mapping/github';
+import {
+  graphQuery,
+  graphQueryForVulnerabilities,
+  mapGithubData
+} from '@/mapping/github';
 import { tryCatchWrapper } from '@/utils/error';
 import { base64Decode } from '@/utils/helpers';
+import { groupVulnerabilitiesBySeverity } from '@/controllers/github';
 
 /**
  * The function `getGitHubInfo` retrieves information about a GitHub repository using a GraphQL query.
@@ -97,5 +102,35 @@ export const getContributors = tryCatchWrapper(
       }));
     }
     return null;
+  }
+);
+
+/**
+ * Fetches the vulnerabilities of a given npm package from GitHub's GraphQL API.
+ *
+ * @param packageName - The name of the npm package to fetch vulnerabilities for.
+ * @returns An object containing the status of the response and the grouped vulnerabilities by severity.
+ *
+ * @throws Will throw an error if the request fails.
+ */
+export const getPackageVulnerabilities = tryCatchWrapper(
+  async (packageName: string) => {
+    const query: string = graphQueryForVulnerabilities(packageName);
+    const url = `https://api.github.com/graphql`;
+
+    const response: AxiosResponse = await axios.post(
+      url,
+      { query },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`
+        }
+      }
+    );
+
+    return {
+      status: response?.status,
+      data: groupVulnerabilitiesBySeverity(response?.data)
+    };
   }
 );

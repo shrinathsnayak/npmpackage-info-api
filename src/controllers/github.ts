@@ -53,3 +53,55 @@ export const getRepositoryInfo = tryCatchWrapper(async (npmPkg: string) => {
   const [owner, repo] = pkgGitUrl.split('/');
   return getGitHubInfo(owner, repo);
 });
+
+/**
+ * Groups vulnerabilities by their severity level.
+ *
+ * @param response - The response object containing security vulnerabilities data.
+ * @returns An object where the keys are severity levels and the values are arrays of vulnerabilities.
+ *
+ * The structure of the returned object is:
+ * {
+ *   "severityLevel1": [
+ *     {
+ *       vulnerableVersionRange: string,
+ *       severity: string,
+ *       description: string,
+ *       references: string[]
+ *     },
+ *     ...
+ *   ],
+ *   "severityLevel2": [
+ *     ...
+ *   ],
+ *   ...
+ * }
+ */
+export const groupVulnerabilitiesBySeverity = (response: any) => {
+  const groupedVulnerabilities =
+    response?.data?.securityVulnerabilities?.edges?.reduce(
+      (acc: Record<string, any[]>, { node }: { node: any }) => {
+        const { vulnerableVersionRange, severity, advisory } = node;
+
+        if (!acc[severity]) {
+          acc[severity] = [];
+        }
+
+        const referenceUrls = advisory?.references.map(
+          (ref: { url: string }) => ref?.url
+        );
+
+        acc[severity].push({
+          vulnerableVersionRange,
+          severity,
+          description: advisory?.description,
+          references: referenceUrls
+        });
+
+        return acc;
+      },
+      {}
+    );
+
+  return groupedVulnerabilities;
+};

@@ -2,7 +2,7 @@ import 'module-alias/register';
 import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import { getPackageDownloads, getPackageInfo } from './controllers/package';
-import { getGitHubInfo } from './services/github';
+import { getGitHubInfo, getPackageVulnerabilities } from './services/github';
 import { getPkgInfo, searchPackage } from './services/npm';
 import { getHealth } from './controllers/health';
 import { getSecurityScore } from './services/securityscan';
@@ -44,7 +44,12 @@ app.get('/package', (req: Request, res: Response) => {
 });
 
 app.get('/downloads', (req: Request, res: Response) => {
-  const { packageName, startDate, endDate, getDailyDownloads = true } = req.query as {
+  const {
+    packageName,
+    startDate,
+    endDate,
+    getDailyDownloads = true
+  } = req.query as {
     packageName: string;
     startDate: string;
     endDate: string;
@@ -110,6 +115,18 @@ app.get('/search', async (req: Request, res: Response) => {
   } else {
     tryCatchWrapper(async () => {
       const data = await searchPackage(q, size);
+      res.send(data);
+    })();
+  }
+});
+
+app.get('/vulnerabilities', async (req: Request, res: Response) => {
+  const { name } = req?.query as { name: string };
+  if (!name) {
+    handleMissingParameter(res, 404, messages.errors.PROJECT_NAME_MISSING);
+  } else {
+    tryCatchWrapper(async () => {
+      const data = await getPackageVulnerabilities(name);
       res.send(data);
     })();
   }
