@@ -1,3 +1,4 @@
+import { CJS, ESM, NA } from '@/constants';
 import {
   NpmTypes,
   NpmMappingType,
@@ -161,34 +162,29 @@ export const mapNpmSearchData = (
 };
 
 /**
- * The function `checkModuleSupport` determines if a package supports CommonJS, ES modules, or both
- * based on the provided package data.
+ * The function `checkModuleSupport` determines if a package has support for CommonJS and/or ECMAScript
+ * Modules (ESM).
  * @param {any} packageData - The `packageData` parameter in the `checkModuleSupport` function is
- * expected to be an object containing data related to a package/module. This data could include
- * information such as the main entry point for CommonJS modules (`main` property) and the exports
- * field for ECMAScript modules (`exports`
- * @returns The function `checkModuleSupport` returns an object with three properties:
- * - `supportsCommonJS`: Indicates whether the package supports CommonJS format. It will be `true` if
- * `packageData.main` exists, otherwise `null`.
- * - `supportsESM`: Indicates whether the package supports ECMAScript Modules (ESM) format. It will be
- * `true` if `packageData.exports`
+ * expected to be an object containing data related to a package/module. This data may include
+ * information such as the main entry point for CommonJS (CJS) modules (`packageData.main`) and the
+ * exports field for ECMAScript
+ * @returns The function `checkModuleSupport` returns either ` `, CJS, ESM, or NA based on
+ * the presence of `packageData.main` and `packageData.exports` properties. If both properties are
+ * present, it returns ` `. If only `packageData.main` is present, it returns CJS. If only
+ * `packageData
  */
 export const checkModuleSupport = (packageData: any) => {
   try {
     const hasCommonJSSupport = Boolean(packageData.main);
     const hasESMSupport = Boolean(packageData.exports);
 
-    return {
-      supportsCommonJS: hasCommonJSSupport || null,
-      supportsESM: hasESMSupport || null,
-      supportsBoth: (hasCommonJSSupport && hasESMSupport) || null
-    };
+    if (hasCommonJSSupport && hasESMSupport) {
+      return `${ESM}, ${CJS}`;
+    }
+
+    return hasCommonJSSupport ? CJS : hasESMSupport ? ESM : NA;
   } catch (error) {
     console.log(error);
-    return {
-      supportsCommonJS: null,
-      supportsESM: null,
-      supportsBoth: null
-    };
+    return NA;
   }
 };
