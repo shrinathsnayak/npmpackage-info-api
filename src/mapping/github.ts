@@ -210,23 +210,35 @@ export const graphQuery = (owner: string, repo: string) => {
  */
 export const graphQueryForVulnerabilities = (packageName: string) => {
   return `query {
-  securityVulnerabilities(package: "${packageName}", ecosystem: NPM, first: 50) {
-    edges {
-      node {
-        package {
-          name
-        }
-        vulnerableVersionRange
-        severity
-        advisory {
-          description
-          references {
-            url
+    securityVulnerabilities(package: "${packageName}", ecosystem: NPM, first: 50) {
+      edges {
+        node {
+          vulnerableVersionRange
+          severity
+          firstPatchedVersion {
+            identifier
+          }
+          advisory {
+            description
+            summary
+            publishedAt
+            updatedAt
+            severity
+            cvss {
+              score
+            }
+            permalink
+            references {
+              url
+            }
+            identifiers {
+              type
+              value
+            }
           }
         }
       }
     }
   }
-}
   `.replace(/\s+/g, ' ');
 };

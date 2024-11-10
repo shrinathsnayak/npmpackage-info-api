@@ -55,47 +55,56 @@ export const getRepositoryInfo = tryCatchWrapper(async (npmPkg: string) => {
 });
 
 /**
- * Groups vulnerabilities by their severity level.
- *
- * @param response - The response object containing security vulnerabilities data.
- * @returns An object where the keys are severity levels and the values are arrays of vulnerabilities.
- *
- * The structure of the returned object is:
- * {
- *   "severityLevel1": [
- *     {
- *       vulnerableVersionRange: string,
- *       severity: string,
- *       description: string,
- *       references: string[]
- *     },
- *     ...
- *   ],
- *   "severityLevel2": [
- *     ...
- *   ],
- *   ...
- * }
+ * The function `groupVulnerabilitiesBySeverity` takes a response object, extracts security
+ * vulnerabilities data, and groups them by severity level.
+ * @param {any} response - The `groupVulnerabilitiesBySeverity` function takes a response object as a
+ * parameter. The response object is expected to have a specific structure with nested properties to
+ * extract security vulnerabilities data. The function then processes this data to group
+ * vulnerabilities by severity level and returns an object where vulnerabilities are categorized based
+ * on their
+ * @returns The function `groupVulnerabilitiesBySeverity` returns an object where vulnerabilities are
+ * grouped by severity. Each severity level is a key in the object, and the value associated with each
+ * key is an array of vulnerability objects. Each vulnerability object contains information such as
+ * vulnerable version range, severity, description, references, first patched version, CVSS score, and
+ * identifiers.
  */
 export const groupVulnerabilitiesBySeverity = (response: any) => {
   const groupedVulnerabilities =
     response?.data?.securityVulnerabilities?.edges?.reduce(
       (acc: Record<string, any[]>, { node }: { node: any }) => {
-        const { vulnerableVersionRange, severity, advisory } = node;
+        const {
+          vulnerableVersionRange,
+          severity,
+          advisory,
+          firstPatchedVersion,
+          cvss,
+          identifiers,
+        } = node;
 
         if (!acc[severity]) {
           acc[severity] = [];
         }
 
-        const referenceUrls = advisory?.references.map(
-          (ref: { url: string }) => ref?.url
+        const referenceUrls = advisory?.references
+          .map((ref: { url: string }) => ref?.url)
+          .filter((url: string) => url !== advisory?.permalink);
+
+        const vulnerabilityIdentifiers = identifiers?.map(
+          (identifier: { type: string; value: string }) => ({
+            type: identifier.type,
+            value: identifier.value
+          })
         );
 
         acc[severity].push({
-          vulnerableVersionRange,
           severity,
+          summary: advisory?.summary,
+          cvssScore: cvss?.score,
+          vulnerableVersionRange,
+          identifiers: vulnerabilityIdentifiers,
           description: advisory?.description,
-          references: referenceUrls
+          references: referenceUrls,
+          firstPatchedVersion: firstPatchedVersion?.identifier,
         });
 
         return acc;
