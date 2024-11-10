@@ -1,3 +1,4 @@
+import { VULNERABILITIES_ORDER } from '@/constants';
 import { getGitHubInfo } from '@/services/github';
 import { tryCatchWrapper } from '@/utils/error';
 
@@ -55,18 +56,17 @@ export const getRepositoryInfo = tryCatchWrapper(async (npmPkg: string) => {
 });
 
 /**
- * The function `groupVulnerabilitiesBySeverity` takes a response object, extracts security
- * vulnerabilities data, and groups them by severity level.
+ * The function `groupVulnerabilitiesBySeverity` categorizes security vulnerabilities by severity and
+ * sorts them according to a predefined order.
  * @param {any} response - The `groupVulnerabilitiesBySeverity` function takes a response object as a
- * parameter. The response object is expected to have a specific structure with nested properties to
- * extract security vulnerabilities data. The function then processes this data to group
- * vulnerabilities by severity level and returns an object where vulnerabilities are categorized based
- * on their
+ * parameter. This response object is expected to have a specific structure with nested data related to
+ * security vulnerabilities. The function processes this data to group vulnerabilities by severity and
+ * return them in a sorted manner.
  * @returns The function `groupVulnerabilitiesBySeverity` returns an object where vulnerabilities are
- * grouped by severity. Each severity level is a key in the object, and the value associated with each
- * key is an array of vulnerability objects. Each vulnerability object contains information such as
- * vulnerable version range, severity, description, references, first patched version, CVSS score, and
- * identifiers.
+ * grouped by severity. Each severity level is a key in the object, and the value is an array of
+ * vulnerability objects with details such as severity, summary, CVSS score, vulnerable version range,
+ * identifiers, description, references, and first patched version. The vulnerabilities are sorted
+ * according to a predefined order specified in the VULNERABILITIES_ORDER constant.
  */
 export const groupVulnerabilitiesBySeverity = (response: any) => {
   const groupedVulnerabilities =
@@ -78,7 +78,7 @@ export const groupVulnerabilitiesBySeverity = (response: any) => {
           advisory,
           firstPatchedVersion,
           cvss,
-          identifiers,
+          identifiers
         } = node;
 
         if (!acc[severity]) {
@@ -104,7 +104,7 @@ export const groupVulnerabilitiesBySeverity = (response: any) => {
           identifiers: vulnerabilityIdentifiers,
           description: advisory?.description,
           references: referenceUrls,
-          firstPatchedVersion: firstPatchedVersion?.identifier,
+          firstPatchedVersion: firstPatchedVersion?.identifier
         });
 
         return acc;
@@ -112,5 +112,13 @@ export const groupVulnerabilitiesBySeverity = (response: any) => {
       {}
     );
 
-  return groupedVulnerabilities;
+  // Sort the vulnerabilities according to the predefined order
+  const sortedVulnerabilities: Record<string, any[]> = {};
+  VULNERABILITIES_ORDER.forEach((severity) => {
+    if (groupedVulnerabilities[severity]) {
+      sortedVulnerabilities[severity] = groupedVulnerabilities[severity];
+    }
+  });
+
+  return sortedVulnerabilities;
 };

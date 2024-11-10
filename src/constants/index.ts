@@ -4,3 +4,4 @@ export const TODAY_DATE = format(new Date(), 'yyyy-MM-dd');
 export const ESM = 'ESM';
 export const CJS = 'CommonJS';
 export const NA = 'N/A';
+export const VULNERABILITIES_ORDER = ['CRITICAL', 'HIGH', 'MODERATE', 'LOW'];
