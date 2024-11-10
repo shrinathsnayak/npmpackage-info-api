@@ -88,6 +88,7 @@ export const mapNpmData = (npmData: NpmTypes): NpmMappingType | any => {
         minNodeVersion: npmData?.version,
         npmUser: getUserInfo(npmData?._npmUser),
         collaborators: getMaintainers(npmData?.maintainers),
+        moduleFormats: checkModuleSupport(npmData),
         package: {
           id: npmData?._id,
           nodeVersion: npmData?._nodeVersion,
@@ -155,6 +156,39 @@ export const mapNpmSearchData = (
     return {
       status: 404,
       message: 'No package was found with the specified name'
+    };
+  }
+};
+
+/**
+ * The function `checkModuleSupport` determines if a package supports CommonJS, ES modules, or both
+ * based on the provided package data.
+ * @param {any} packageData - The `packageData` parameter in the `checkModuleSupport` function is
+ * expected to be an object containing data related to a package/module. This data could include
+ * information such as the main entry point for CommonJS modules (`main` property) and the exports
+ * field for ECMAScript modules (`exports`
+ * @returns The function `checkModuleSupport` returns an object with three properties:
+ * - `supportsCommonJS`: Indicates whether the package supports CommonJS format. It will be `true` if
+ * `packageData.main` exists, otherwise `null`.
+ * - `supportsESM`: Indicates whether the package supports ECMAScript Modules (ESM) format. It will be
+ * `true` if `packageData.exports`
+ */
+export const checkModuleSupport = (packageData: any) => {
+  try {
+    const hasCommonJSSupport = Boolean(packageData.main);
+    const hasESMSupport = Boolean(packageData.exports);
+
+    return {
+      supportsCommonJS: hasCommonJSSupport || null,
+      supportsESM: hasESMSupport || null,
+      supportsBoth: (hasCommonJSSupport && hasESMSupport) || null
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      supportsCommonJS: null,
+      supportsESM: null,
+      supportsBoth: null
     };
   }
 };

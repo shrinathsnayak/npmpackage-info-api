@@ -69,6 +69,7 @@ export type NpmMappingType = {
       unpackedSize?: number;
       fileCount?: number;
     };
+    exports: any;
     collaborators?: MaintainersTypes[] | undefined;
     npmUser?: any;
     dependencies?: {
