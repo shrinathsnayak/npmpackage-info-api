@@ -98,6 +98,7 @@ export const groupVulnerabilitiesBySeverity = (response: any) => {
 
         acc[severity].push({
           severity,
+          permalink: advisory?.permalink,
           summary: advisory?.summary,
           cvssScore: cvss?.score,
           vulnerableVersionRange,

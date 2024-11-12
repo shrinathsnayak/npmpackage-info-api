@@ -1,4 +1,4 @@
-import { CJS, ESM, NA } from '@/constants';
+import { CJS, ESM, NA, UMD } from '@/constants';
 import {
   NpmTypes,
   NpmMappingType,
@@ -162,27 +162,25 @@ export const mapNpmSearchData = (
 };
 
 /**
- * The function `checkModuleSupport` determines if a package has support for CommonJS and/or ECMAScript
- * Modules (ESM).
- * @param {any} packageData - The `packageData` parameter in the `checkModuleSupport` function is
- * expected to be an object containing data related to a package/module. This data may include
- * information such as the main entry point for CommonJS (CJS) modules (`packageData.main`) and the
- * exports field for ECMAScript
- * @returns The function `checkModuleSupport` returns either ` `, CJS, ESM, or NA based on
- * the presence of `packageData.main` and `packageData.exports` properties. If both properties are
- * present, it returns ` `. If only `packageData.main` is present, it returns CJS. If only
- * `packageData
+ * The function `checkModuleSupport` determines the supported module formats based on the provided
+ * package data.
+ * @param {any} packageData - `packageData` is an object containing data related to a package, such as
+ * information about its main file, exports, browser compatibility, and umd (Universal Module
+ * Definition) support.
+ * @returns The function `checkModuleSupport` returns a string that represents the supported module
+ * types based on the provided `packageData`. The supported module types are determined by checking the
+ * presence of certain properties in the `packageData` object. The function returns a comma-separated
+ * list of supported module types (CJS, ESM, UMD) if any are found, or 'NA' if none are found.
  */
 export const checkModuleSupport = (packageData: any) => {
   try {
-    const hasCommonJSSupport = Boolean(packageData.main);
-    const hasESMSupport = Boolean(packageData.exports);
+    const supportedModules = [];
 
-    if (hasCommonJSSupport && hasESMSupport) {
-      return `${ESM}, ${CJS}`;
-    }
+    if (packageData.main) supportedModules.push(CJS);
+    if (packageData.exports) supportedModules.push(ESM);
+    if (packageData.browser || packageData.umd) supportedModules.push(UMD);
 
-    return hasCommonJSSupport ? CJS : hasESMSupport ? ESM : NA;
+    return supportedModules.length > 0 ? supportedModules.join(', ') : NA;
   } catch (error) {
     console.log(error);
     return NA;
