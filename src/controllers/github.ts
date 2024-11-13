@@ -100,11 +100,13 @@ export const groupVulnerabilitiesBySeverity = (response: any) => {
           severity,
           permalink: advisory?.permalink,
           summary: advisory?.summary,
-          cvssScore: cvss?.score,
+          cvssScore: advisory?.cvss?.score,
           vulnerableVersionRange,
           identifiers: vulnerabilityIdentifiers,
           description: advisory?.description,
           references: referenceUrls,
+          publishedAt: advisory?.publishedAt,
+          updatedAt: advisory?.updatedAt,
           firstPatchedVersion: firstPatchedVersion?.identifier
         });
 
