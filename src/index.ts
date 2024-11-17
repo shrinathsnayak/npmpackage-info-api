@@ -17,7 +17,7 @@ dotenv.config();
 const totalCPUs = availableParallelism();
 const port = process.env.PORT || 8000;
 
-if (cluster.isPrimary) {
+if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
   console.log(`Number of CPUs is ${totalCPUs}`);
   console.log(`Primary ${process.pid} is running`);
 
@@ -144,12 +144,12 @@ if (cluster.isPrimary) {
   });
 
   app.get('/vulnerabilities', async (req: Request, res: Response) => {
-    const { name } = req?.query as { name: string };
+    const { name, version } = req?.query as { name: string; version: string };
     if (!name) {
       handleMissingParameter(res, 404, messages.errors.PROJECT_NAME_MISSING);
     } else {
       tryCatchWrapper(async () => {
-        const data = await getPackageVulnerabilities(name);
+        const data = await getPackageVulnerabilities(name, version);
         res.send(data);
       })();
     }

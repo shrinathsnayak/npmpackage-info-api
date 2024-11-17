@@ -1,3 +1,4 @@
+import semver from 'semver';
 import { VULNERABILITIES_ORDER } from '@/constants';
 import { getGitHubInfo } from '@/services/github';
 import { tryCatchWrapper } from '@/utils/error';
@@ -57,18 +58,24 @@ export const getRepositoryInfo = tryCatchWrapper(async (npmPkg: string) => {
 
 /**
  * The function `groupVulnerabilitiesBySeverity` categorizes security vulnerabilities by severity and
- * sorts them according to a predefined order.
- * @param {any} response - The `groupVulnerabilitiesBySeverity` function takes a response object as a
- * parameter. This response object is expected to have a specific structure with nested data related to
- * security vulnerabilities. The function processes this data to group vulnerabilities by severity and
- * return them in a sorted manner.
- * @returns The function `groupVulnerabilitiesBySeverity` returns an object where vulnerabilities are
- * grouped by severity. Each severity level is a key in the object, and the value is an array of
- * vulnerability objects with details such as severity, summary, CVSS score, vulnerable version range,
- * identifiers, description, references, and first patched version. The vulnerabilities are sorted
- * according to a predefined order specified in the VULNERABILITIES_ORDER constant.
+ * returns them sorted according to a predefined order.
+ * @param {any} response - The `response` parameter in the `groupVulnerabilitiesBySeverity` function is
+ * expected to be an object containing data related to security vulnerabilities. It likely includes
+ * information about security vulnerabilities such as vulnerable version ranges, severity levels,
+ * advisories, identifiers, references, CVSS scores, publication dates, and
+ * @param {string} latestVersion - The `latestVersion` parameter in the
+ * `groupVulnerabilitiesBySeverity` function is a string that represents the most recent version of a
+ * software or application. This parameter is used to compare against vulnerable version ranges to
+ * determine if a vulnerability exists in the latest version.
+ * @returns The function `groupVulnerabilitiesBySeverity` returns an object with two properties:
+ * 1. `stableVersion`: The stable version obtained from the `getStableVersion` function.
+ * 2. `sortedVulnerabilities`: An object where each key represents a severity level (e.g., "LOW",
+ * "MODERATE", "HIGH", "CRITICAL") and the value is an array of vulnerabilities with that severity.
  */
-export const groupVulnerabilitiesBySeverity = (response: any) => {
+export const groupVulnerabilitiesBySeverity = (
+  response: any,
+  latestVersion: string
+) => {
   const groupedVulnerabilities =
     response?.data?.securityVulnerabilities?.edges?.reduce(
       (acc: Record<string, any[]>, { node }: { node: any }) => {
@@ -77,7 +84,6 @@ export const groupVulnerabilitiesBySeverity = (response: any) => {
           severity,
           advisory,
           firstPatchedVersion,
-          cvss,
           identifiers
         } = node;
 
@@ -115,7 +121,8 @@ export const groupVulnerabilitiesBySeverity = (response: any) => {
       {}
     );
 
-  // Sort the vulnerabilities according to the predefined order
+  const stableVersion = getStableVersion(response, latestVersion);
+
   const sortedVulnerabilities: Record<string, any[]> = {};
   VULNERABILITIES_ORDER.forEach((severity) => {
     if (groupedVulnerabilities[severity]) {
@@ -123,5 +130,84 @@ export const groupVulnerabilitiesBySeverity = (response: any) => {
     }
   });
 
-  return sortedVulnerabilities;
+  return { stableVersion, sortedVulnerabilities };
+};
+
+/**
+ * The function `getStableVersion` determines the stable version of a software package based on
+ * security vulnerabilities and the latest version available.
+ * @param {any} response - The `response` parameter is expected to be an object containing data with a
+ * specific structure. It should have a `data` property which in turn should have a
+ * `securityVulnerabilities` property that contains an array of objects under the `edges` key. This
+ * function is designed to extract information from
+ * @param {string} latestVersion - The `latestVersion` parameter in the `getStableVersion` function
+ * represents the most recent version of a software package or library. This version is used as the
+ * starting point to determine the stable version considering any security vulnerabilities and patches.
+ * @returns The function `getStableVersion` returns a string value representing the stable version of a
+ * software package based on the provided response data and the latest version available. If no stable
+ * version is found, it returns `null`.
+ */
+const getStableVersion = (
+  response: any,
+  latestVersion: string
+): string | null => {
+  const vulnerabilities = response?.data?.securityVulnerabilities?.edges || [];
+
+  let stableVersion = latestVersion;
+
+  vulnerabilities.forEach(({ node }: { node: any }) => {
+    const { vulnerableVersionRange, firstPatchedVersion } = node;
+
+    // Check if a firstPatchedVersion exists and if it's higher than the current stableVersion
+    if (firstPatchedVersion?.identifier) {
+      if (semver.gt(firstPatchedVersion.identifier, stableVersion)) {
+        stableVersion = firstPatchedVersion.identifier;
+      }
+    } else {
+      // If no firstPatchedVersion, calculate a patched version from the vulnerable range
+      const nextStable = calculateNextStableVersion(vulnerableVersionRange);
+      if (nextStable && semver.gt(nextStable, stableVersion)) {
+        stableVersion = nextStable;
+      }
+    }
+  });
+
+  return stableVersion;
+};
+
+/**
+ * The function `calculateNextStableVersion` takes a vulnerable version range as input and returns the
+ * next stable version after the highest upper bound in the range.
+ * @param {string} vulnerableVersionRange - The `vulnerableVersionRange` parameter is a string
+ * representing a range of versions that are considered vulnerable. This function calculates the next
+ * stable version based on the upper bounds of the version ranges provided.
+ * @returns The function `calculateNextStableVersion` returns a string representing the next stable
+ * version after the vulnerable version range provided as input. If there is a valid maximum version in
+ * the range, it increments that version by a patch level and returns the updated version. If no valid
+ * maximum version is found, it returns `null`.
+ */
+export const calculateNextStableVersion = (
+  vulnerableVersionRange: string
+): string | null => {
+  if (!vulnerableVersionRange) {
+    return null;
+  }
+
+  const ranges = vulnerableVersionRange
+    .split('||')
+    .map((range) => range.trim());
+  let maxVersion = null;
+
+  for (const range of ranges) {
+    const upperBound = semver.validRange(range)?.split(' ')[1]; // Get the upper limit
+    if (upperBound && (!maxVersion || semver.gt(upperBound, maxVersion))) {
+      maxVersion = upperBound;
+    }
+  }
+
+  if (maxVersion) {
+    return semver.inc(maxVersion, 'patch');
+  }
+
+  return null;
 };

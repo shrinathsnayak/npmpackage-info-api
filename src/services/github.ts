@@ -114,7 +114,7 @@ export const getContributors = tryCatchWrapper(
  * @throws Will throw an error if the request fails.
  */
 export const getPackageVulnerabilities = tryCatchWrapper(
-  async (packageName: string) => {
+  async (packageName: string, version: string) => {
     const query: string = graphQueryForVulnerabilities(packageName);
     const url = `https://api.github.com/graphql`;
 
@@ -130,7 +130,7 @@ export const getPackageVulnerabilities = tryCatchWrapper(
 
     return {
       status: response?.status,
-      data: groupVulnerabilitiesBySeverity(response?.data)
+      data: groupVulnerabilitiesBySeverity(response?.data, version)
     };
   }
 );
