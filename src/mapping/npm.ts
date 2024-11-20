@@ -162,27 +162,31 @@ export const mapNpmSearchData = (
 };
 
 /**
- * The function `checkModuleSupport` determines the supported module formats based on the provided
- * package data.
- * @param {any} packageData - `packageData` is an object containing data related to a package, such as
- * information about its main file, exports, browser compatibility, and umd (Universal Module
- * Definition) support.
+ * The function `checkModuleSupport` determines the supported module formats based on package data in
+ * TypeScript.
+ * @param {any} packageData - The `packageData` parameter in the `checkModuleSupport` function is an
+ * object that contains information about a package, such as its main file, type (whether it is a
+ * module or not), exports, browser compatibility, and umd (Universal Module Definition) support. The
+ * function checks this data
  * @returns The function `checkModuleSupport` returns a string that represents the supported module
- * types based on the provided `packageData`. The supported module types are determined by checking the
- * presence of certain properties in the `packageData` object. The function returns a comma-separated
- * list of supported module types (CJS, ESM, UMD) if any are found, or 'NA' if none are found.
+ * types based on the `packageData` provided. The supported module types are determined by checking
+ * various properties of the `packageData` object. If any of the conditions are met, the corresponding
+ * module type is added to the `supportedModules` array. Finally, the function returns a
+ * comma-separated string of the supported module types if there are any, or 'N/A' if no module types are supported.
  */
 export const checkModuleSupport = (packageData: any) => {
   try {
     const supportedModules = [];
 
-    if (packageData.main) supportedModules.push(CJS);
-    if (packageData.exports) supportedModules.push(ESM);
+    if (packageData.main && packageData.type !== 'module')
+      supportedModules.push(CJS);
+    if (packageData.exports || packageData.type === 'module')
+      supportedModules.push(ESM);
     if (packageData.browser || packageData.umd) supportedModules.push(UMD);
 
     return supportedModules.length > 0 ? supportedModules.join(', ') : NA;
   } catch (error) {
-    console.log(error);
+    console.error('Error checking module support:', error);
     return NA;
   }
 };

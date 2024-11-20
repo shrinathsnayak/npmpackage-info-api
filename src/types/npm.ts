@@ -4,6 +4,7 @@ export type NpmTypes = {
   name?: string;
   version?: string;
   description?: string;
+  type?: string;
   main?: string;
   license?: string;
   repository?: Repository;
@@ -60,6 +61,7 @@ export type NpmMappingType = {
     repositoryUrl?: string;
     bugsUrl?: string;
     homepage?: string;
+    type?: string;
     types?: boolean;
     minNodeVersion?: string;
     package: {
