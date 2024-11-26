@@ -1,5 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 import { tryCatchWrapper } from '@/utils/error';
+import messages from '@/constants/messages';
 
 /**
  * The function `getBundlePhobiaData` fetches size data for a given package using the BundlePhobia API
@@ -14,7 +15,7 @@ export const getBundlePhobiaData = tryCatchWrapper(async (pkg: string) => {
   if (!pkg) {
     return {
       status: 400,
-      message: 'Package name is required'
+      message: messages.errors.PROJECT_NAME_MISSING
     };
   }
   const url = `https://bundlephobia.com/api/size?package=${pkg}`;

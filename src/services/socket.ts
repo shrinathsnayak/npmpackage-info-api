@@ -5,6 +5,7 @@ import {
   getTransformedScore
 } from '@/utils/helpers';
 import { tryCatchWrapper } from '@/utils/error';
+import messages from '@/constants/messages';
 
 /**
  * The function `getAPIKey` generates a random API key from an array and encodes it using Base64.
@@ -32,17 +33,24 @@ export const getAPIKey = (): string => {
  */
 export const getVulnerabilityScore = tryCatchWrapper(
   async (packageName: string, version: string) => {
-    const URL = `https://api.socket.dev/v0/npm/${packageName}/${version}`;
-    const scoreResponse: AxiosResponse = await axios.get(`${URL}/score`, {
-      headers: {
-        accept: 'application/json',
-        Authorization: getAPIKey()
-      }
-    });
-    return {
-      status: 200,
-      data: getTransformedScore(scoreResponse?.data)
-    };
+    if (packageName && version) {
+      const URL = `https://api.socket.dev/v0/npm/${packageName}/${version}`;
+      const scoreResponse: AxiosResponse = await axios.get(`${URL}/score`, {
+        headers: {
+          accept: 'application/json',
+          Authorization: getAPIKey()
+        }
+      });
+      return {
+        status: 200,
+        data: getTransformedScore(scoreResponse?.data)
+      };
+    } else {
+      return {
+        status: 400,
+        message: messages.errors.PROJECT_NAME_OR_VERSION_MISSING
+      };
+    }
   }
 );
 

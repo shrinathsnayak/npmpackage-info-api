@@ -1,6 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import { mapScanData } from '@/mapping/securityscan';
 import { tryCatchWrapper } from '@/utils/error';
+import messages from '@/constants/messages';
 
 /**
  * The function `getSecurityScore` retrieves the security score of a GitHub repository using the
@@ -15,8 +16,15 @@ import { tryCatchWrapper } from '@/utils/error';
  */
 export const getSecurityScore = tryCatchWrapper(
   async (owner: string, repoName: string) => {
-    const url = `https://api.securityscorecards.dev/projects/github.com/${owner}/${repoName}`;
-    const response: AxiosResponse = await axios.get(url);
-    return mapScanData(response?.data);
+    if (owner && repoName) {
+      const url = `https://api.securityscorecards.dev/projects/github.com/${owner}/${repoName}`;
+      const response: AxiosResponse = await axios.get(url);
+      return mapScanData(response?.data);
+    } else {
+      return {
+        status: 400,
+        message: messages.errors.OWNER_OR_REPO_MISSING
+      };
+    }
   }
 );
