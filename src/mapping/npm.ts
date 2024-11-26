@@ -86,10 +86,12 @@ export const mapNpmData = (npmData: NpmTypes): NpmMappingType | any => {
         homepage: npmData?.homepage,
         bugsUrl: npmData?.bugs?.url,
         types: !!npmData?.types,
-        minNodeVersion: npmData?.version,
+        minNodeVersion: npmData?.engines?.node,
         npmUser: getUserInfo(npmData?._npmUser),
         collaborators: getMaintainers(npmData?.maintainers),
         moduleFormats: checkModuleSupport(npmData),
+        _npmVersion: npmData?._npmVersion,
+        _nodeVersion: npmData?._nodeVersion,
         package: {
           id: npmData?._id,
           nodeVersion: npmData?._nodeVersion,
