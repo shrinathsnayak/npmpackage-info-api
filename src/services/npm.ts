@@ -55,7 +55,7 @@ export const getAllDailyDownloads = tryCatchWrapper(
         );
       })
     );
-    const allDownloads: any = rangesResponses.reduce(
+    const allDownloads: any = rangesResponses?.reduce(
       (acc: any[], { data }: any) => {
         return [...acc, ...data.downloads];
       },

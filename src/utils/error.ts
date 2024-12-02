@@ -54,7 +54,10 @@ export const tryCatchWrapper = <T extends (...args: any[]) => Promise<any>>(
     try {
       return await fn(...args);
     } catch (error: any) {
-      console.error('An error occurred:', error);
+      console.error('An error occurred:', {
+        status: error?.response?.status || 500,
+        message: error?.response?.data?.error?.message || 'Something went wrong'
+      });
       return {
         status: error?.response?.status || 500,
         message: error?.response?.data?.error?.message || 'Something went wrong'
