@@ -139,7 +139,6 @@ export interface GitHubMappingType {
     contributorsCount?: number | undefined;
     contributors?: any;
     languages?: LanguageWithPercentage;
-    readMe?: string | null;
     issues?: {
       total?: number;
       open?: number;

@@ -17,7 +17,7 @@ import { tryCatchWrapper } from '@/utils/error';
  */
 export const getPkgInfo = tryCatchWrapper(
   async (pkg: string, version = 'latest') => {
-    const url = `https://registry.npmjs.org/${encodeURIComponent(pkg)}/${version}`;
+    const url = `https://r.cnpmjs.org/${encodeURIComponent(pkg)}/${version}`;
     const response: AxiosResponse = await axios.get(url);
     return mapNpmData(response.data);
   }
@@ -36,8 +36,8 @@ export const getPkgInfo = tryCatchWrapper(
  * from the npm registry API.
  */
 export const searchPackage = tryCatchWrapper(
-  async (pkg: string, size: number = 5) => {
-    const url = `http://registry.npmjs.com/-/v1/search?text=${pkg}&size=${size}`;
+  async (pkg: string, size: number = 10, from: number = 0) => {
+    const url = `https://registry.npmmirror.com/-/v1/search?text=${pkg}&size=${size}&from=${from}`;
     const response: AxiosResponse = await axios.get(url);
     return mapNpmSearchData(response?.data);
   }

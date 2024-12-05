@@ -27,6 +27,7 @@ export type NpmTypes = {
   directories?: any;
   maintainers?: NpmUser[];
   _hasShrinkwrap?: boolean;
+  readme?: string | null;
 };
 
 type NpmUser = {

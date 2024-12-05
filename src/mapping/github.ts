@@ -13,7 +13,6 @@ import { generateLanguageArray, generateReleases } from '@/utils/helpers';
 export const mapGithubData = (
   githubData: GitHubTypes,
   owner: string,
-  readMeData: string | null,
   contributors: any[]
 ): GitHubMappingType | undefined => {
   if (githubData && Object.keys(githubData).length > 0) {
@@ -57,7 +56,6 @@ export const mapGithubData = (
           closed: githubData?.closedIssues?.totalCount
         },
         languages: generateLanguageArray(githubData?.languages),
-        readMe: readMeData,
         contributors: contributors,
         releases: generateReleases(githubData?.releases?.nodes?.[0])
       }
@@ -158,26 +156,6 @@ export const graphQuery = (owner: string, repo: string) => {
       }
       pullRequests(states: OPEN) {
         totalCount
-      }
-      readMe: object(expression: "HEAD:README.md") {
-        ... on Blob {
-          text
-        }
-      }
-      readMeOther: object(expression: "HEAD:readme.md") {
-        ... on Blob {
-          text
-        }
-      }
-      otherFile: object(expression: "HEAD:index.js") {
-        ... on Blob {
-          text
-        }
-      }
-      nextjsReadMe: object(expression: "HEAD:packages/next/README.md") {
-        ... on Blob {
-          text
-        }
       }
       releases: refs(refPrefix: "refs/tags/", last: 1) {
         nodes {

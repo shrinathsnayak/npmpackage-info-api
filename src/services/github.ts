@@ -33,13 +33,13 @@ export const getGitHubInfo = tryCatchWrapper(
         }
       }
     );
-    const readMeData: string | null = await getRepositoryReadMe(
-      owner,
-      repoName
-    );
+    // const readMeData: string | null = await getRepositoryReadMe(
+    //   owner,
+    //   repoName
+    // );
     const contributors: any = await getContributors(owner, repoName);
     const { repository } = response?.data?.data || {};
-    return mapGithubData(repository, owner, readMeData, contributors);
+    return mapGithubData(repository, owner, contributors);
   }
 );
 

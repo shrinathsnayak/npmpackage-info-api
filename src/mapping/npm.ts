@@ -92,6 +92,7 @@ export const mapNpmData = (npmData: NpmTypes): NpmMappingType | any => {
         moduleFormats: checkModuleSupport(npmData),
         _npmVersion: npmData?._npmVersion,
         _nodeVersion: npmData?._nodeVersion,
+        readMe: npmData?.readme,
         package: {
           id: npmData?._id,
           nodeVersion: npmData?._nodeVersion,
