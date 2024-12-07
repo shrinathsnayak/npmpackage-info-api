@@ -23,11 +23,11 @@ export const terminate = (
     options.coredump ? process.abort() : process.exit();
   };
 
-  return (code: number, reason: string) =>
-    (err?: Error, promise?: Promise<unknown>) => {
+  return () =>
+    (err?: Error) => {
       if (err && err instanceof Error) {
         // Log error information, use a proper logging library here :)
-        console.log(err.message, err.stack);
+        // console.log(err.message, err.stack);
       }
 
       // Attempt a graceful shutdown
@@ -54,7 +54,6 @@ export const tryCatchWrapper = <T extends (...args: any[]) => Promise<any>>(
     try {
       return await fn(...args);
     } catch (error: any) {
-      console.log(error)
       return {
         status: error?.response?.status || 500,
         message: error?.response?.data?.error?.message || 'Something went wrong'

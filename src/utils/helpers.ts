@@ -40,7 +40,6 @@ export const base64Decode = (base64EncodedString: string): string => {
     const decodedString = decodeURIComponent(escape(atob(base64EncodedString)));
     return decodedString;
   } catch (error) {
-    console.error('Error decoding base64 string:', error);
     return '';
   }
 };
@@ -206,7 +205,6 @@ export const getRandomApiKey = (apiKeys: string[]): string => {
  */
 export const getTransformedScore = (score: any) => {
   if (!score) {
-    console.error('Invalid input structure. Missing score or issues.');
     return null;
   }
 
@@ -250,7 +248,6 @@ export const getTransformedScore = (score: any) => {
  */
 export const getTransformedAlerts = (alerts: any) => {
   if (!alerts) {
-    console.error('Invalid input structure. Missing score or issues.');
     return null;
   }
 

@@ -189,7 +189,6 @@ export const checkModuleSupport = (packageData: any) => {
 
     return supportedModules.length > 0 ? supportedModules.join(', ') : NA;
   } catch (error) {
-    console.error('Error checking module support:', error);
     return NA;
   }
 };
