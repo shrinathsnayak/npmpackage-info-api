@@ -17,7 +17,7 @@ import { tryCatchWrapper } from '@/utils/error';
  * repository could not be found for the
  */
 export function matchGithubRepo(info: any): string {
-  const maybeLink = info?.data?.repository?.url || info?.data?.homepage;
+  const maybeLink = info?.data?.repositoryUrl || info?.data?.repository?.url || info?.data?.homepage;
   if (!maybeLink) {
     return '';
   }
