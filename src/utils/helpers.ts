@@ -1,5 +1,6 @@
 import { addYears, endOfYear, format } from 'date-fns';
 import { Edge, Languages } from '@/types/github';
+import { WHITELIST_DOMAINS } from '@/constants';
 
 /**
  * The function `generateLanguageArray` takes a `Languages` object, extracts relevant data from its
@@ -267,4 +268,20 @@ export const getTransformedAlerts = (alerts: any) => {
     });
     return acc;
   }, {});
+};
+
+/* The `export const corsOptions` object is defining a configuration for Cross-Origin Resource Sharing
+(CORS) in a Node.js application. It specifies the behavior for allowing or denying requests from
+different origins based on a whitelist of domains defined in `WHITELIST_DOMAINS`. */
+export const corsOptions: any = {
+  origin: (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void
+  ) => {
+    if (!origin || WHITELIST_DOMAINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
 };

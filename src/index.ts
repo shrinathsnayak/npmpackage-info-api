@@ -1,6 +1,8 @@
 import 'module-alias/register';
 import dotenv from 'dotenv';
 import cluster from 'cluster';
+import cors from 'cors';
+import helmet from 'helmet';
 import { availableParallelism } from 'os';
 import express, { Express, Request, Response } from 'express';
 import { getPackageDownloads, getPackageInfo } from './controllers/package';
@@ -10,6 +12,7 @@ import { getHealth } from './controllers/health';
 import { getSecurityScore } from './services/securityscan';
 import { terminate, tryCatchWrapper } from './utils/error';
 import { handleMissingParameter } from './utils/error';
+import { corsOptions } from './utils/helpers';
 import messages from './constants/messages';
 
 dotenv.config();
@@ -32,6 +35,10 @@ if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
   });
 } else {
   const app: Express = express();
+
+  app.use(cors(corsOptions));
+  app.use(helmet());
+  app.disable('x-powered-by');
 
   const exitHandler = terminate(app, {
     coredump: false,
