@@ -17,20 +17,24 @@ import { tryCatchWrapper } from '@/utils/error';
  * repository could not be found for the
  */
 export function matchGithubRepo(info: any): string {
-  const maybeLink = info?.data?.repositoryUrl || info?.data?.repository?.url || info?.data?.homepage;
+  const maybeLink = info?.data?.repositoryUrl || info?.data?.homepage;
   if (!maybeLink) {
-    return '';
+    console.error(`Cannot find repository or homepage for ${info.name}`);
   }
-
-  // Common regex pattern for extracting GitHub repository paths
-  const regex =
-    /(?:git(?:\+https|\+ssh)?:\/\/(?:git@)?|https:\/\/)github\.com\/([^/]+\/[^/]+)(?:\.git)?/;
-  const match = maybeLink.match(regex);
-
-  if (match) {
-    return match[1];
+  {
+    const regex = /git(?:\+https|\+ssh)?:\/\/(?:git@)?github\.com\/(.*)\.git/;
+    const match = maybeLink.match(regex);
+    if (match) {
+      return match[1]?.replace(/\.git$/, '');
+    }
   }
-
+  {
+    const regex = /https:\/\/github\.com\/(.*)/;
+    const match = maybeLink.match(regex);
+    if (match) {
+      return match[1]?.replace(/\.git$/, '');
+    }
+  }
   return '';
 }
 
