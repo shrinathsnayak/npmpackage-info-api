@@ -17,6 +17,7 @@ import { tryCatchWrapper } from '@/utils/error';
  * repository could not be found for the
  */
 export function matchGithubRepo(info: any): string {
+  console.log(info?.data);
   const maybeLink = info?.data?.repositoryUrl || info?.data?.homepage;
   if (!maybeLink) {
     console.error(`Cannot find repository or homepage for ${info.name}`);
