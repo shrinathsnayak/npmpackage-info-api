@@ -151,5 +151,6 @@ export interface GitHubMappingType {
       merged?: number;
     };
     releases?: any;
+    readMe?: string | null;
   };
 }

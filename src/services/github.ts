@@ -18,7 +18,7 @@ import { groupVulnerabilitiesBySeverity } from '@/controllers/github';
  * specified by the owner and repoName parameters.
  */
 export const getGitHubInfo = tryCatchWrapper(
-  async (owner: string, repoName: string) => {
+  async (owner: string, repoName: string, loadReadme = false) => {
     if (!owner && !repoName) {
       return null;
     }
@@ -33,13 +33,13 @@ export const getGitHubInfo = tryCatchWrapper(
         }
       }
     );
-    // const readMeData: string | null = await getRepositoryReadMe(
-    //   owner,
-    //   repoName
-    // );
+    const readMeData: string | null = loadReadme && await getRepositoryReadMe(
+      owner,
+      repoName
+    );
     const contributors: any = await getContributors(owner, repoName);
     const { repository } = response?.data?.data || {};
-    return mapGithubData(repository, owner, contributors);
+    return mapGithubData(repository, owner, contributors, readMeData);
   }
 );
 

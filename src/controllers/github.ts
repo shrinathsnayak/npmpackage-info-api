@@ -42,13 +42,13 @@ export function matchGithubRepo(info: any): string {
  * @returns The function `getRepositoryInfo` returns a Promise that resolves to the result of
  * `mapGithubData(repository)`.
  */
-export const getRepositoryInfo = tryCatchWrapper(async (npmPkg: string) => {
+export const getRepositoryInfo = tryCatchWrapper(async (npmPkg: any) => {
   const pkgGitUrl = matchGithubRepo(npmPkg);
   if (!pkgGitUrl) {
     return;
   }
   const [owner, repo] = pkgGitUrl.split('/');
-  return getGitHubInfo(owner, repo);
+  return getGitHubInfo(owner, repo, !npmPkg?.data?.readMe);
 });
 
 /**
