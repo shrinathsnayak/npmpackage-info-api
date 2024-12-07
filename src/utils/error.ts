@@ -23,8 +23,8 @@ export const terminate = (
     options.coredump ? process.abort() : process.exit();
   };
 
-  return () =>
-    (err?: Error) => {
+  return (code: number, reason: string) =>
+    (err?: Error, promise?: Promise<unknown>) => {
       if (err && err instanceof Error) {
         // Log error information, use a proper logging library here :)
         // console.log(err.message, err.stack);
