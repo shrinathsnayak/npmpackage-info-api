@@ -29,6 +29,7 @@ export type NpmTypes = {
   _hasShrinkwrap?: boolean;
   readme?: string | null;
   funding?: string | null;
+  publish_time?: number | null;
 };
 
 type NpmUser = {

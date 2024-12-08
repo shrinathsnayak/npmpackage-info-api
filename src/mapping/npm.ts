@@ -103,6 +103,7 @@ export const mapNpmData = (npmData: NpmTypes): NpmMappingType | any => {
           unpackedSize: npmData?.dist?.unpackedSize,
           fileCount: npmData?.dist?.fileCount
         },
+        publishedOn: npmData?.publish_time,
         dependencies: {
           dependencies:
             npmData?.dependencies && getDependencies(npmData?.dependencies),
