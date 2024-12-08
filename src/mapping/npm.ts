@@ -99,6 +99,7 @@ export const mapNpmData = (npmData: NpmTypes): NpmMappingType | any => {
           id: npmData?._id,
           nodeVersion: npmData?._nodeVersion,
           npmVersion: npmData?._npmVersion,
+          size: npmData?.dist?.size,
           unpackedSize: npmData?.dist?.unpackedSize,
           fileCount: npmData?.dist?.fileCount
         },
