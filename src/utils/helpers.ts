@@ -282,3 +282,32 @@ export const corsOptions: any = {
     }
   }
 };
+
+/**
+ * The function `extractFundingURLs` extracts URLs from a nested object structure and returns them in
+ * an array.
+ * @param {any} funding - The `extractFundingURLs` function takes a `funding` parameter, which can be
+ * of any type. The function recursively extracts URLs from the `funding` object and its nested
+ * properties. It collects all the URLs found into an array and returns that array if URLs are found,
+ * or
+ * @returns The function `extractFundingURLs` returns an array of funding URLs extracted from the input
+ * `funding` data. If there are URLs found, it returns the array of URLs. If no URLs are found, it
+ * returns `null`.
+ */
+export const extractFundingURLs = (funding: any) => {
+  const urls = [];
+
+  (function extract(value) {
+    if (!value) return;
+
+    if (typeof value === 'string') {
+      urls.push(value);
+    } else if (Array.isArray(value)) {
+      value.forEach(extract);
+    } else if (value.url) {
+      urls.push(value.url);
+    }
+  })(funding);
+
+  return urls?.length > 0 ? urls : null;
+};

@@ -6,6 +6,7 @@ import {
   mapNpmSearchDataMapping
 } from '@/types/npm';
 import { getProfilePhotoUrl } from '@/utils/gravatar';
+import { extractFundingURLs } from '@/utils/helpers';
 
 /**
  * The function `getUserInfo` takes an object as input and returns an object with the name, email, and
@@ -93,6 +94,7 @@ export const mapNpmData = (npmData: NpmTypes): NpmMappingType | any => {
         _npmVersion: npmData?._npmVersion,
         _nodeVersion: npmData?._nodeVersion,
         readMe: npmData?.readme,
+        funding: extractFundingURLs(npmData?.funding),
         package: {
           id: npmData?._id,
           nodeVersion: npmData?._nodeVersion,

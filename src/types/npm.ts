@@ -28,6 +28,7 @@ export type NpmTypes = {
   maintainers?: NpmUser[];
   _hasShrinkwrap?: boolean;
   readme?: string | null;
+  funding?: string | null;
 };
 
 type NpmUser = {
@@ -72,6 +73,7 @@ export type NpmMappingType = {
       unpackedSize?: number;
       fileCount?: number;
     };
+    funding?: string | null;
     exports: any;
     collaborators?: MaintainersTypes[] | undefined;
     npmUser?: any;
