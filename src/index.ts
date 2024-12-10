@@ -12,7 +12,11 @@ import { getHealth } from './controllers/health';
 import { getSecurityScore } from './services/securityscan';
 import { terminate, tryCatchWrapper } from './utils/error';
 import { handleMissingParameter } from './utils/error';
-import { compressionOptions, corsOptions } from './utils/helpers';
+import {
+  compressionOptions,
+  corsOptions,
+  rateLimiter
+} from './utils/configurations';
 import messages from './constants/messages';
 
 dotenv.config();
@@ -38,6 +42,7 @@ if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
 
   app.disable('x-powered-by');
   app.use(helmet());
+  app.use(rateLimiter);
   app.use(compressionOptions);
   app.use(cors(corsOptions));
 

@@ -14,7 +14,7 @@ export const mapGithubData = (
   githubData: GitHubTypes,
   owner: string,
   contributors: any[],
-  readMeData: string | null,
+  readMeData: string | null
 ): GitHubMappingType | undefined => {
   if (githubData && Object.keys(githubData).length > 0) {
     return {

@@ -1,8 +1,5 @@
-import zlib from 'zlib';
-import compression from 'compression';
 import { addYears, endOfYear, format } from 'date-fns';
 import { Edge, Languages } from '@/types/github';
-import { WHITELIST_DOMAINS } from '@/constants';
 
 /**
  * The function `generateLanguageArray` takes a `Languages` object, extracts relevant data from its
@@ -222,10 +219,10 @@ export const getTransformedScore = (score: any) => {
             (compAcc: any, compKey: any) => {
               compAcc[compKey] = score[key]?.components[compKey]?.score
                 ? parseFloat(
-                  (score[key]?.components[compKey]?.maxScore * 100)?.toFixed(
-                    1
+                    (score[key]?.components[compKey]?.maxScore * 100)?.toFixed(
+                      1
+                    )
                   )
-                )
                 : 0;
               return compAcc;
             },
@@ -268,48 +265,6 @@ export const getTransformedAlerts = (alerts: any) => {
     return acc;
   }, {});
 };
-
-/* The `export const corsOptions` object is defining a configuration for Cross-Origin Resource Sharing
-(CORS) in a Node.js application. It specifies the behavior for allowing or denying requests from
-different origins based on a whitelist of domains defined in `WHITELIST_DOMAINS`. */
-export const corsOptions: any = {
-  origin: (
-    origin: string | undefined,
-    callback: (err: Error | null, allow?: boolean) => void
-  ) => {
-    if (!origin || WHITELIST_DOMAINS.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  }
-};
-
-/* The above code is configuring compression options for a server using the compression library in
-TypeScript. It sets various options such as compression level, threshold, filter function based on
-request and response headers, chunk size, flush options, memory level, compression strategy, and
-window bits. These options are used to determine how and when to compress the response data sent
-from the server to the client. */
-export const compressionOptions: any = compression({
-  level: 6,
-  threshold: 1024,
-  filter: (req: any, res: any) => {
-    if (req.headers['x-no-compression']) {
-      return false;
-    }
-    const contentType = res.getHeader('Content-Type');
-    return (
-      contentType &&
-      /text|json|javascript|css|html/.test(contentType.toString())
-    );
-  },
-  chunkSize: 100 * 1024,
-  flush: zlib.constants.Z_NO_FLUSH,
-  finishFlush: zlib.constants.Z_SYNC_FLUSH,
-  memLevel: 6,
-  strategy: zlib.constants.Z_DEFAULT_STRATEGY,
-  windowBits: 15
-});
 
 /**
  * The function `extractFundingURLs` extracts URLs from a nested object structure and returns them in
