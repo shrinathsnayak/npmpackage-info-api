@@ -33,10 +33,8 @@ export const getGitHubInfo = tryCatchWrapper(
         }
       }
     );
-    const readMeData: string | null = loadReadme && await getRepositoryReadMe(
-      owner,
-      repoName
-    );
+    const readMeData: string | null =
+      loadReadme && (await getRepositoryReadMe(owner, repoName));
     const contributors: any = await getContributors(owner, repoName);
     const { repository } = response?.data?.data || {};
     return mapGithubData(repository, owner, contributors, readMeData);
@@ -88,17 +86,21 @@ export const getRepositoryReadMe = tryCatchWrapper(
  * there is no data retrieved from the API call, it returns `null`.
  */
 export const getContributors = tryCatchWrapper(
-  async (owner: string, repoName: string) => {
-    const url = `https://api.github.com/repos/${owner}/${repoName}/contributors?per_page=24`;
+  async (
+    owner: string,
+    repoName: string,
+    page: number = 1,
+    limit: number = 20
+  ) => {
+    const url = `https://api.opensauced.pizza/v2/repos/${owner}/${repoName}/contributors?page=${page}&limit=${limit}`;
     const response: AxiosResponse = await axios.get(url);
     const { data } = response || {};
     if (data) {
-      return data?.map((item: any) => ({
+      return data?.data?.map((item: any) => ({
         name: item?.login,
         url: item?.avatar_url,
         id: item?.id,
-        contributions: item?.contributions,
-        profile_url: item?.html_url
+        contributions: item?.total_contributions
       }));
     }
     return null;
