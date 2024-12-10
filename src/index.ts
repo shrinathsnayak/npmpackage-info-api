@@ -1,9 +1,9 @@
 import 'module-alias/register';
+import os from 'os';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import cluster from 'cluster';
-import cors from 'cors';
 import helmet from 'helmet';
-import { availableParallelism } from 'os';
 import express, { Express, Request, Response } from 'express';
 import { getPackageDownloads, getPackageInfo } from './controllers/package';
 import { getGitHubInfo, getPackageVulnerabilities } from './services/github';
@@ -17,7 +17,7 @@ import messages from './constants/messages';
 
 dotenv.config();
 
-const totalCPUs = availableParallelism();
+const totalCPUs = os.cpus().length;
 const port = process.env.PORT || 8000;
 
 if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
