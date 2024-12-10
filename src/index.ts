@@ -12,7 +12,7 @@ import { getHealth } from './controllers/health';
 import { getSecurityScore } from './services/securityscan';
 import { terminate, tryCatchWrapper } from './utils/error';
 import { handleMissingParameter } from './utils/error';
-import { corsOptions } from './utils/helpers';
+import { compressionOptions, corsOptions } from './utils/helpers';
 import messages from './constants/messages';
 
 dotenv.config();
@@ -36,9 +36,10 @@ if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
 } else {
   const app: Express = express();
 
-  app.use(cors(corsOptions));
-  app.use(helmet());
   app.disable('x-powered-by');
+  app.use(helmet());
+  app.use(compressionOptions);
+  app.use(cors(corsOptions));
 
   const exitHandler = terminate(app, {
     coredump: false,

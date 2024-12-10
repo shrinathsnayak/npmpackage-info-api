@@ -1,3 +1,5 @@
+import zlib from 'zlib';
+import compression from 'compression';
 import { addYears, endOfYear, format } from 'date-fns';
 import { Edge, Languages } from '@/types/github';
 import { WHITELIST_DOMAINS } from '@/constants';
@@ -282,6 +284,32 @@ export const corsOptions: any = {
     }
   }
 };
+
+/* The above code is configuring compression options for a server using the compression library in
+TypeScript. It sets various options such as compression level, threshold, filter function based on
+request and response headers, chunk size, flush options, memory level, compression strategy, and
+window bits. These options are used to determine how and when to compress the response data sent
+from the server to the client. */
+export const compressionOptions: any = compression({
+  level: 6,
+  threshold: 1024,
+  filter: (req: any, res: any) => {
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    const contentType = res.getHeader('Content-Type');
+    return (
+      contentType &&
+      /text|json|javascript|css|html/.test(contentType.toString())
+    );
+  },
+  chunkSize: 100 * 1024,
+  flush: zlib.constants.Z_NO_FLUSH,
+  finishFlush: zlib.constants.Z_SYNC_FLUSH,
+  memLevel: 6,
+  strategy: zlib.constants.Z_DEFAULT_STRATEGY,
+  windowBits: 15
+});
 
 /**
  * The function `extractFundingURLs` extracts URLs from a nested object structure and returns them in
