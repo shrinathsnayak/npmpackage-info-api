@@ -47,21 +47,12 @@ export const searchPackage = tryCatchWrapper(
 npm package within a given date range. */
 export const getAllDailyDownloads = tryCatchWrapper(
   async (packageName: string, sinceDate: string, endDate: string) => {
-    const ranges = getListOfRangesSinceStart(sinceDate, endDate);
-    const rangesResponses = await Promise.all(
-      ranges.map(({ start, end }) => {
-        return axios.get(
-          `https://api.npmjs.org/downloads/range/${start}:${end}/${packageName}`
-        );
-      })
+    const rangesResponses: any = await fetchDownloadCounts(
+      packageName,
+      sinceDate,
+      endDate
     );
-    const allDownloads: any = rangesResponses?.reduce(
-      (acc: any[], { data }: any) => {
-        return [...acc, ...data.downloads];
-      },
-      []
-    );
-
+    const allDownloads: any = rangesResponses?.downloads;
     const lastDayWithData = allDownloads?.findLastIndex(
       ({ downloads }: any) => downloads > 0
     );
@@ -78,5 +69,43 @@ export const getAllDailyDownloads = tryCatchWrapper(
     }
 
     return allDownloadsUntilLastDayWithData;
+  }
+);
+
+/* The `fetchDownloadCounts` function is responsible for fetching daily download counts for a specified
+npm package within a given date range. */
+const fetchDownloadCounts = tryCatchWrapper(
+  async (packageName: string, sinceDate: string, endDate: string) => {
+    try {
+      const response = await axios.get(
+        `https://npm-stat.com/api/download-counts?package=${packageName}&from=${sinceDate}&until=${endDate}`
+      );
+      const packageDownloadCount = response.data?.[packageName];
+      return {
+        downloads: Object.keys(packageDownloadCount).map((key) => ({
+          downloads: packageDownloadCount[key],
+          day: key
+        }))
+      };
+    } catch (error) {
+      try {
+        const ranges = getListOfRangesSinceStart(sinceDate, endDate);
+        const response = await Promise.all(
+          ranges.map(({ start, end }) =>
+            axios.get(
+              `https://api.npmjs.org/downloads/range/${start}:${end}/${packageName}`
+            )
+          )
+        );
+        return {
+          downloads: response.map((res) => ({
+            downloads: res.data.downloads,
+            day: res.data.start
+          }))
+        };
+      } catch (fallbackError) {
+        return [];
+      }
+    }
   }
 );
