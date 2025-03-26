@@ -77,35 +77,25 @@ npm package within a given date range. */
 const fetchDownloadCounts = tryCatchWrapper(
   async (packageName: string, sinceDate: string, endDate: string) => {
     try {
-      const response = await axios.get(
-        `https://npm-stat.com/api/download-counts?package=${packageName}&from=${sinceDate}&until=${endDate}`
-      );
-      const packageDownloadCount = response.data?.[packageName];
-      return {
-        downloads: Object.keys(packageDownloadCount).map((key) => ({
-          downloads: packageDownloadCount[key],
-          day: key
-        }))
-      };
-    } catch (error) {
-      try {
-        const ranges = getListOfRangesSinceStart(sinceDate, endDate);
-        const response = await Promise.all(
-          ranges.map(({ start, end }) =>
-            axios.get(
-              `https://api.npmjs.org/downloads/range/${start}:${end}/${packageName}`
-            )
+      const ranges = getListOfRangesSinceStart(sinceDate, endDate);
+      const rangesResponses: any = await Promise.all(
+        ranges.map(({ start, end }) =>
+          axios.get(
+            `https://api.npmjs.org/downloads/range/${start}:${end}/${packageName}`
           )
-        );
-        return {
-          downloads: response.map((res) => ({
-            downloads: res.data.downloads,
-            day: res.data.start
-          }))
-        };
-      } catch (fallbackError) {
-        return [];
-      }
+        )
+      );
+      const allDownloads: any = rangesResponses?.reduce(
+        (acc: any[], { data }: any) => {
+          return [...acc, ...data.downloads];
+        },
+        []
+      );
+      return {
+        downloads: allDownloads
+      };
+    } catch (fallbackError) {
+      return [];
     }
   }
 );
