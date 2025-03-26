@@ -13,7 +13,6 @@ import { generateLanguageArray, generateReleases } from '@/utils/helpers';
 export const mapGithubData = (
   githubData: GitHubTypes,
   owner: string,
-  contributors: any[],
   readMeData: string | null
 ): GitHubMappingType | undefined => {
   if (githubData && Object.keys(githubData).length > 0) {
@@ -58,7 +57,6 @@ export const mapGithubData = (
         },
         readMe: readMeData,
         languages: generateLanguageArray(githubData?.languages),
-        contributors: contributors,
         releases: generateReleases(githubData?.releases?.nodes?.[0])
       }
     };

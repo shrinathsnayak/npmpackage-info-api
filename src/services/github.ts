@@ -35,9 +35,8 @@ export const getGitHubInfo = tryCatchWrapper(
     );
     const readMeData: string | null =
       loadReadme && (await getRepositoryReadMe(owner, repoName));
-    const contributors: any = await getContributors(owner, repoName);
     const { repository } = response?.data?.data || {};
-    return mapGithubData(repository, owner, contributors, readMeData);
+    return mapGithubData(repository, owner, readMeData);
   }
 );
 
