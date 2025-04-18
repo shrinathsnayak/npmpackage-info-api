@@ -71,3 +71,9 @@ export const compressionOptions: any = compression({
   strategy: zlib.constants.Z_DEFAULT_STRATEGY,
   windowBits: 15
 });
+
+export const vercelCachingHeaders = {
+  'Cache-Control': 'max-age=10',
+  'CDN-Cache-Control': 'max-age=60',
+  'Vercel-CDN-Cache-Control': 'max-age=3600'
+};

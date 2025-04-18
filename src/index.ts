@@ -15,7 +15,8 @@ import { handleMissingParameter } from './utils/error';
 import {
   compressionOptions,
   corsOptions,
-  rateLimiter
+  rateLimiter,
+  vercelCachingHeaders
 } from './utils/configurations';
 import messages from './constants/messages';
 
@@ -69,7 +70,7 @@ if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
     } else {
       tryCatchWrapper(async () => {
         const data = await getPackageInfo(req);
-        res.status(200).send(data);
+        res.status(200).header(vercelCachingHeaders).send(data);
       })();
     }
   });
@@ -99,7 +100,7 @@ if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
             dailyDownloads: getDailyDownloads
           }
         );
-        res.status(200).send(data);
+        res.status(200).header(vercelCachingHeaders).send(data);
       })();
     }
   });
@@ -114,7 +115,7 @@ if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
     } else {
       tryCatchWrapper(async () => {
         const data = await getPkgInfo(project, version);
-        res.send(data);
+        res.status(200).header(vercelCachingHeaders).send(data);
       })();
     }
   });
@@ -126,7 +127,7 @@ if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
     } else {
       tryCatchWrapper(async () => {
         const data = await getGitHubInfo(owner, repo);
-        res.send(data);
+        res.status(200).header(vercelCachingHeaders).send(data);
       })();
     }
   });
@@ -138,7 +139,7 @@ if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
     } else {
       tryCatchWrapper(async () => {
         const data = await getSecurityScore(owner, repo);
-        res.send(data);
+        res.status(200).header(vercelCachingHeaders).send(data);
       })();
     }
   });
@@ -151,7 +152,7 @@ if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
     } else {
       tryCatchWrapper(async () => {
         const data = await searchPackage(q, size);
-        res.send(data);
+        res.status(200).send(data);
       })();
     }
   });
@@ -163,7 +164,7 @@ if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
     } else {
       tryCatchWrapper(async () => {
         const data = await getPackageVulnerabilities(name, version);
-        res.send(data);
+        res.status(200).header(vercelCachingHeaders).send(data);
       })();
     }
   });
