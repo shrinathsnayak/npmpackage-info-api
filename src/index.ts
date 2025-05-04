@@ -80,12 +80,10 @@ if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
       packageName,
       startDate,
       endDate,
-      getDailyDownloads = true
     } = req.query as {
       packageName: string;
       startDate: string;
       endDate: string;
-      getDailyDownloads: any;
     };
 
     if (!packageName) {
@@ -95,10 +93,7 @@ if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
         const data = await getPackageDownloads(
           packageName,
           startDate,
-          endDate,
-          {
-            dailyDownloads: getDailyDownloads
-          }
+          endDate
         );
         res.status(200).header(vercelCachingHeaders).send(data);
       })();
