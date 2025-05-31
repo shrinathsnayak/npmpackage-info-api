@@ -26,5 +26,6 @@ export const getSecurityScore = tryCatchWrapper(
         message: messages.errors.OWNER_OR_REPO_MISSING
       };
     }
-  }
+  },
+  'getSecurityScore'
 );

@@ -48,7 +48,7 @@ export const getPackageInfo = tryCatchWrapper(async (req: Request) => {
     securityScore,
     vulnerabilityScore
   };
-});
+}, 'getPackageInfo');
 
 /**
  * The function `getPackageDownloads` retrieves and calculates various statistics related to package
@@ -174,5 +174,5 @@ export const getPackageDownloads = tryCatchWrapper(
         message: 'Download data not found!'
       };
     }
-  }
+  }, 'getPackageDownloads'
 );

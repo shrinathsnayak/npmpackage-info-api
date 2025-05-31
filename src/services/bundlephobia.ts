@@ -24,4 +24,4 @@ export const getBundlePhobiaData = tryCatchWrapper(async (pkg: string) => {
     status: response.status,
     data: response.data
   };
-});
+}, 'getBundlePhobiaData');

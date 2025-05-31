@@ -26,8 +26,9 @@ export const terminate = (
   return (code: number, reason: string) =>
     (err?: Error, promise?: Promise<unknown>) => {
       if (err && err instanceof Error) {
-        // Log error information, use a proper logging library here :)
-        // console.log(err.message, err.stack);
+        console.error(`[terminate] ${reason}:`, err.stack || err.message || err);
+      } else {
+        console.error(`[terminate] ${reason} (no error object)`);
       }
 
       // Attempt a graceful shutdown
@@ -48,12 +49,32 @@ export const terminate = (
  * a status code and a default error message.
  */
 export const tryCatchWrapper = <T extends (...args: any[]) => Promise<any>>(
-  fn: T
+  fn: T,
+  label?: string
 ): T => {
   return (async (...args: Parameters<T>): Promise<ReturnType<T> | any> => {
+    const startTime = performance.now(); // Start time measurement
+
     try {
-      return await fn(...args);
+      const result = await fn(...args);
+      const endTime = performance.now();
+
+      const executionTime = endTime - startTime;
+      console.log(
+        `${label ? `[${label}] ` : ''} executed in ${executionTime.toFixed(2)} ms`
+      );
+      return result;
     } catch (error: any) {
+      const endTime = performance.now();
+      const executionTime = endTime - startTime;
+
+      console.error(
+        `${label ? `[${label}] ` : ''}Function "${fn.name || 'anonymous'}" failed after ${executionTime.toFixed(2)} ms. Error:`,
+        error
+      );
+
+      console.error(error)
+
       return {
         status: error?.response?.status || 500,
         message: error?.response?.data?.error?.message || 'Something went wrong'

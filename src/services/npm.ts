@@ -1,6 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
 import { mapNpmData, mapNpmSearchData } from '@/mapping/npm';
-import { getListOfRangesSinceStart } from '@/utils/helpers';
 import { tryCatchWrapper } from '@/utils/error';
 
 /**
@@ -40,7 +39,8 @@ export const searchPackage = tryCatchWrapper(
     const url = `https://registry.npmmirror.com/-/v1/search?text=${pkg}&size=${size}&from=${from}`;
     const response: AxiosResponse = await axios.get(url);
     return mapNpmSearchData(response?.data);
-  }
+  },
+  'searchPackage'
 );
 
 /* The `getAllDailyDownloads` function is a function that retrieves daily download data for a specified
@@ -69,7 +69,8 @@ export const getAllDailyDownloads = tryCatchWrapper(
     }
 
     return allDownloadsUntilLastDayWithData;
-  }
+  },
+  'getAllDailyDownloads'
 );
 
 /* The `fetchDownloadCounts` function is responsible for fetching daily download counts for a specified
@@ -77,25 +78,29 @@ npm package within a given date range. */
 const fetchDownloadCounts = tryCatchWrapper(
   async (packageName: string, sinceDate: string, endDate: string) => {
     try {
-      const ranges = getListOfRangesSinceStart(sinceDate, endDate);
-      const rangesResponses: any = await Promise.all(
-        ranges.map(({ start, end }) =>
-          axios.get(
-            `https://api.npmjs.org/downloads/range/${start}:${end}/${packageName}`
-          )
-        )
+      const { data } = await axios.get(
+        `https://npm-stat.com/api/download-counts?package=${packageName}&from=${sinceDate}&until=${endDate}`
       );
-      const allDownloads: any = rangesResponses?.reduce(
-        (acc: any[], { data }: any) => {
-          return [...acc, ...data.downloads];
-        },
-        []
-      );
-      return {
-        downloads: allDownloads
-      };
+
+      const packageData = data?.[packageName];
+
+      const result = [];
+      const current = new Date(sinceDate);
+      const end = new Date(endDate);
+
+      while (current <= end) {
+        const day = current.toISOString().split('T')[0];
+        result.push({
+          downloads: packageData?.[day] ?? 0,
+          day
+        });
+        current.setDate(current.getDate() + 1);
+      }
+
+      return { downloads: result };
     } catch (fallbackError) {
       return [];
     }
-  }
+  },
+  'fetchDownloadCounts'
 );

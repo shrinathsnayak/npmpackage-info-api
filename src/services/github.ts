@@ -37,7 +37,8 @@ export const getGitHubInfo = tryCatchWrapper(
       loadReadme && (await getRepositoryReadMe(owner, repoName));
     const { repository } = response?.data?.data || {};
     return mapGithubData(repository, owner, readMeData);
-  }
+  },
+  'getGitHubInfo'
 );
 
 /**
@@ -70,7 +71,8 @@ export const getRepositoryReadMe = tryCatchWrapper(
       return base64Decode(content);
     }
     return null;
-  }
+  },
+  'getRepositoryReadMe'
 );
 
 /**
@@ -103,7 +105,8 @@ export const getContributors = tryCatchWrapper(
       }));
     }
     return null;
-  }
+  },
+  'getContributors'
 );
 
 /**
@@ -133,5 +136,6 @@ export const getPackageVulnerabilities = tryCatchWrapper(
       status: response?.status,
       data: groupVulnerabilitiesBySeverity(response?.data, version)
     };
-  }
+  },
+  'getPackageVulnerabilities'
 );

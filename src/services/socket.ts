@@ -51,7 +51,8 @@ export const getVulnerabilityScore = tryCatchWrapper(
         message: messages.errors.PROJECT_NAME_OR_VERSION_MISSING
       };
     }
-  }
+  },
+  'getVulnerabilityScore'
 );
 
 /**
@@ -76,5 +77,6 @@ export const getAlerts = tryCatchWrapper(
       }
     });
     return getTransformedAlerts(alertsResponse?.data);
-  }
+  },
+  'getAlerts'
 );

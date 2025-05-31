@@ -53,7 +53,7 @@ export const getRepositoryInfo = tryCatchWrapper(async (npmPkg: any) => {
   }
   const [owner, repo] = pkgGitUrl.split('/');
   return getGitHubInfo(owner, repo, !npmPkg?.data?.readMe);
-});
+}, 'getRepositoryInfo');
 
 /**
  * The function `groupVulnerabilitiesBySeverity` categorizes security vulnerabilities by severity and
