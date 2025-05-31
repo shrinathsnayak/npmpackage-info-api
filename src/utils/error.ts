@@ -26,7 +26,10 @@ export const terminate = (
   return (code: number, reason: string) =>
     (err?: Error, promise?: Promise<unknown>) => {
       if (err && err instanceof Error) {
-        console.error(`[terminate] ${reason}:`, err.stack || err.message || err);
+        console.error(
+          `[terminate] ${reason}:`,
+          err.stack || err.message || err
+        );
       } else {
         console.error(`[terminate] ${reason} (no error object)`);
       }
@@ -73,7 +76,7 @@ export const tryCatchWrapper = <T extends (...args: any[]) => Promise<any>>(
         error
       );
 
-      console.error(error)
+      console.error(error);
 
       return {
         status: error?.response?.status || 500,

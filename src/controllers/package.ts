@@ -69,7 +69,7 @@ export const getPackageDownloads = tryCatchWrapper(
   async (
     packageName = '',
     sinceDate = FIRST_AVAILABLE_DATE,
-    endDate = TODAY_DATE,
+    endDate = TODAY_DATE
   ) => {
     const allDailyDownloads: any = await getAllDailyDownloads(
       packageName,
@@ -174,5 +174,6 @@ export const getPackageDownloads = tryCatchWrapper(
         message: 'Download data not found!'
       };
     }
-  }, 'getPackageDownloads'
+  },
+  'getPackageDownloads'
 );

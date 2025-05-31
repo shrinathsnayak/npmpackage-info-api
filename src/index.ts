@@ -76,11 +76,7 @@ if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
   });
 
   app.get('/downloads', (req: Request, res: Response) => {
-    const {
-      packageName,
-      startDate,
-      endDate,
-    } = req.query as {
+    const { packageName, startDate, endDate } = req.query as {
       packageName: string;
       startDate: string;
       endDate: string;
@@ -90,11 +86,7 @@ if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
       handleMissingParameter(res, 404, messages.errors.PROJECT_NAME_MISSING);
     } else {
       tryCatchWrapper(async () => {
-        const data = await getPackageDownloads(
-          packageName,
-          startDate,
-          endDate
-        );
+        const data = await getPackageDownloads(packageName, startDate, endDate);
         res.status(200).header(vercelCachingHeaders).send(data);
       })();
     }
