@@ -1,34 +1,37 @@
 import zlib from 'zlib';
 import compression from 'compression';
-import rateLimit from 'express-rate-limit';
+import http from 'http';
+import https from 'https';
 import { DOMAIN_NAME, WHITELIST_DOMAINS } from '@/constants';
 
-/* The above code is implementing a rate limiter middleware in a TypeScript application. It checks if
-the environment is set to 'production', and if so, it applies rate limiting with the following
-configuration:
-- Window time of 15 minutes (15 * 60 * 1000 milliseconds)
-- Allowing a maximum of 100 requests within the window time
-- Providing a handler function to respond with a 429 status code and a message if the limit is
-exceeded
-- Using a skip function to bypass rate limiting for requests coming from a specific domain specified
-by the DOMAIN_NAME variable */
-export const rateLimiter =
-  process.env.NODE_ENV === 'production'
-    ? rateLimit({
-        windowMs: 15 * 60 * 1000,
-        max: 100,
-        handler: (req, res) => {
-          res
-            .status(429)
-            .json({ message: 'Too many requests, please try again later.' });
-        },
-        skip: (req) => {
-          const referer = req.headers.referer || '';
-          const origin = req.headers.origin || '';
-          return referer.startsWith(DOMAIN_NAME) || origin === DOMAIN_NAME;
-        }
-      })
-    : (req: any, res: any, next: any) => next();
+// Optimized timeout configuration for better performance
+export const axiosTimeout = 3000; // 3 seconds (reduced for faster failure detection)
+export const requestTimeout = 8000; // 8 seconds (reduced for faster responses)
+
+// HTTP keep-alive configuration for connection reuse
+export const axiosConfig = {
+  timeout: axiosTimeout,
+  headers: {
+    'User-Agent': 'npm-package-info-api/1.0.0',
+    'Connection': 'keep-alive',
+    'Accept-Encoding': 'gzip, deflate, br'
+  },
+  // Enable connection pooling and keep-alive
+  httpAgent: new http.Agent({
+    keepAlive: true,
+    keepAliveMsecs: 1000,
+    maxSockets: 50,
+    maxFreeSockets: 10,
+    timeout: 60000
+  }),
+  httpsAgent: new https.Agent({
+    keepAlive: true,
+    keepAliveMsecs: 1000,
+    maxSockets: 50,
+    maxFreeSockets: 10,
+    timeout: 60000
+  })
+};
 
 /* The `export const corsOptions` object is defining a configuration for Cross-Origin Resource Sharing
 (CORS) in a Node.js application. It specifies the behavior for allowing or denying requests from

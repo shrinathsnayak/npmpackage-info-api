@@ -1,27 +1,24 @@
 import axios, { AxiosResponse } from 'axios';
+import { bundlePhobiaMapping } from '@/mapping/bundlephobia';
 import { tryCatchWrapper } from '@/utils/error';
-import messages from '@/constants/messages';
+import { axiosConfig } from '@/utils/configurations';
+
+// Create axios instance with optimized configuration
+const axiosInstance = axios.create(axiosConfig);
 
 /**
- * The function `getBundlePhobiaData` fetches size data for a given package using the BundlePhobia API
- * and handles errors gracefully.
- * @param {string} pkg - The `pkg` parameter in the `getBundlePhobiaData` function is a string that
- * represents the package name for which you want to retrieve data from the BundlePhobia API.
- * @returns The `getBundlePhobiaData` function returns either the data about the package size from the
- * BundlePhobia API if the request is successful, or an object with error details (status and message)
- * if there is an error during the API request.
+ * The function `getBundlePhobiaData` fetches bundle size information for a specified npm package from
+ * the BundlePhobia API.
+ * @param {string} pkg - The `pkg` parameter is a string that represents the name of an npm package for
+ * which you want to retrieve bundle size information.
+ * @returns The function `getBundlePhobiaData` is returning the result of the `bundlePhobiaMapping`
+ * function applied to the data received from the BundlePhobia API for the specified package.
  */
-export const getBundlePhobiaData = tryCatchWrapper(async (pkg: string) => {
-  if (!pkg) {
-    return {
-      status: 400,
-      message: messages.errors.PROJECT_NAME_MISSING
-    };
-  }
-  const url = `https://bundlephobia.com/api/size?package=${pkg}`;
-  const response: AxiosResponse = await axios.get(url);
-  return {
-    status: response.status,
-    data: response.data
-  };
-}, 'getBundlePhobiaData');
+export const getBundlePhobiaData = tryCatchWrapper(
+  async (pkg: string) => {
+    const url = `https://bundlephobia.com/api/size?package=${pkg}`;
+    const response: AxiosResponse = await axiosInstance.get(url);
+    return bundlePhobiaMapping(response?.data);
+  },
+  'getBundlePhobiaData'
+);

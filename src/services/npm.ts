@@ -1,6 +1,10 @@
 import axios, { AxiosResponse } from 'axios';
 import { mapNpmData, mapNpmSearchData } from '@/mapping/npm';
 import { tryCatchWrapper } from '@/utils/error';
+import { axiosConfig } from '@/utils/configurations';
+
+// Create axios instance with optimized configuration
+const axiosInstance = axios.create(axiosConfig);
 
 /**
  * The function `getPkgInfo` fetches information about a specified npm package and version from the npm
@@ -17,7 +21,13 @@ import { tryCatchWrapper } from '@/utils/error';
 export const getPkgInfo = tryCatchWrapper(
   async (pkg: string, version = 'latest') => {
     const url = `https://r.cnpmjs.org/${encodeURIComponent(pkg)}/${version}`;
-    const response: AxiosResponse = await axios.get(url);
+    const response: AxiosResponse = await axiosInstance.get(url);
+
+    // Check if package exists
+    if (!response.data || response.data.error) {
+      throw new Error('Package not found');
+    }
+
     return mapNpmData(response.data);
   }
 );
@@ -37,7 +47,7 @@ export const getPkgInfo = tryCatchWrapper(
 export const searchPackage = tryCatchWrapper(
   async (pkg: string, size: number = 10, from: number = 0) => {
     const url = `https://registry.npmmirror.com/-/v1/search?text=${pkg}&size=${size}&from=${from}`;
-    const response: AxiosResponse = await axios.get(url);
+    const response: AxiosResponse = await axiosInstance.get(url);
     return mapNpmSearchData(response?.data);
   },
   'searchPackage'
@@ -78,7 +88,7 @@ npm package within a given date range. */
 const fetchDownloadCounts = tryCatchWrapper(
   async (packageName: string, sinceDate: string, endDate: string) => {
     try {
-      const { data } = await axios.get(
+      const { data } = await axiosInstance.get(
         `https://npm-stat.com/api/download-counts?package=${packageName}&from=${sinceDate}&until=${endDate}`
       );
 

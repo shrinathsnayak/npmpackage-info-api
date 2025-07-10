@@ -7,6 +7,10 @@ import {
 import { tryCatchWrapper } from '@/utils/error';
 import { base64Decode } from '@/utils/helpers';
 import { groupVulnerabilitiesBySeverity } from '@/controllers/github';
+import { axiosConfig } from '@/utils/configurations';
+
+// Create axios instance with optimized configuration
+const axiosInstance = axios.create(axiosConfig);
 
 /**
  * The function `getGitHubInfo` retrieves information about a GitHub repository using a GraphQL query.
@@ -22,21 +26,35 @@ export const getGitHubInfo = tryCatchWrapper(
     if (!owner && !repoName) {
       return null;
     }
+
     const query: string = graphQuery(owner, repoName);
     const url = `https://api.github.com/graphql`;
-    const response: AxiosResponse = await axios.post(
-      url,
-      { query },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`
+
+    // Make GraphQL and README calls in parallel for better performance
+    const [graphqlResponse, readMeData] = await Promise.allSettled([
+      axiosInstance.post(
+        url,
+        { query },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.GITHUB_TOKEN}`
+          }
         }
-      }
-    );
-    const readMeData: string | null =
-      loadReadme && (await getRepositoryReadMe(owner, repoName));
-    const { repository } = response?.data?.data || {};
-    return mapGithubData(repository, owner, readMeData);
+      ),
+      loadReadme ? getRepositoryReadMe(owner, repoName) : Promise.resolve(null)
+    ]);
+
+    // Handle GraphQL response
+    if (graphqlResponse.status === 'rejected') {
+      throw new Error('GitHub GraphQL API failed');
+    }
+
+    const { repository } = graphqlResponse.value?.data?.data || {};
+
+    // Handle README response
+    const readMeContent = readMeData.status === 'fulfilled' ? readMeData.value : null;
+
+    return mapGithubData(repository, owner, readMeContent);
   },
   'getGitHubInfo'
 );
@@ -45,8 +63,8 @@ export const getGitHubInfo = tryCatchWrapper(
  * This TypeScript function retrieves the README content of a GitHub repository using the GitHub API.
  * @param {string} owner - The `owner` parameter refers to the username or organization that owns the
  * GitHub repository from which you want to retrieve the README file.
- * @param {string} repoName - The `repoName` parameter in the `getRepositoryReadMe` function refers to
- * the name of the repository whose README you want to retrieve from GitHub. It is a string that
+ * @param {string} repoName - The `repoName` parameter in the `getRepositoryReadMe` function refers to the
+ * name of the repository whose README you want to retrieve from GitHub. It is a string that
  * specifies the name of the repository.
  * @returns The function `getRepositoryReadMe` is returning the decoded content of the README file of a
  * GitHub repository specified by the `owner` and `repoName` parameters. The content is decoded using
@@ -59,7 +77,7 @@ export const getRepositoryReadMe = tryCatchWrapper(
       return null;
     }
     const url = `https://api.github.com/repos/${owner}/${repoName}/readme`;
-    const response: AxiosResponse = await axios.get(url, {
+    const response: AxiosResponse = await axiosInstance.get(url, {
       headers: {
         Accept: 'application/vnd.github+json',
         Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
@@ -94,7 +112,7 @@ export const getContributors = tryCatchWrapper(
     limit: number = 20
   ) => {
     const url = `https://api.opensauced.pizza/v2/repos/${owner}/${repoName}/contributors?page=${page}&limit=${limit}`;
-    const response: AxiosResponse = await axios.get(url);
+    const response: AxiosResponse = await axiosInstance.get(url);
     const { data } = response || {};
     if (data) {
       return data?.data?.map((item: any) => ({
@@ -122,7 +140,7 @@ export const getPackageVulnerabilities = tryCatchWrapper(
     const query: string = graphQueryForVulnerabilities(packageName);
     const url = `https://api.github.com/graphql`;
 
-    const response: AxiosResponse = await axios.post(
+    const response: AxiosResponse = await axiosInstance.post(
       url,
       { query },
       {

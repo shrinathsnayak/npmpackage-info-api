@@ -7,8 +7,10 @@
  */
 export const getHealth = () => {
   return {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    message: 'Ok',
-    date: new Date()
+    memory: process.memoryUsage(),
+    environment: process.env.NODE_ENV || 'development'
   };
 };

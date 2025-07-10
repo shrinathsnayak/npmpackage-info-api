@@ -219,10 +219,10 @@ export const getTransformedScore = (score: any) => {
             (compAcc: any, compKey: any) => {
               compAcc[compKey] = score[key]?.components[compKey]?.score
                 ? parseFloat(
-                    (score[key]?.components[compKey]?.maxScore * 100)?.toFixed(
-                      1
-                    )
+                  (score[key]?.components[compKey]?.maxScore * 100)?.toFixed(
+                    1
                   )
+                )
                 : 0;
               return compAcc;
             },
@@ -293,4 +293,61 @@ export const extractFundingURLs = (funding: any) => {
   })(funding);
 
   return urls?.length > 0 ? urls : null;
+};
+
+/**
+ * Enhanced performance monitoring utility that tracks API call timing and logs slow requests
+ * @param label - Label for the API call being measured
+ * @param fn - Function to execute and measure
+ * @returns Promise with the result of the function
+ */
+export const measureTime = async <T>(label: string, fn: () => Promise<T>): Promise<T> => {
+  const startTime = Date.now();
+  try {
+    const result = await fn();
+    const duration = Date.now() - startTime;
+
+    // Log slow API calls for monitoring
+    if (duration > 2000) {
+      console.warn(`[SLOW API] ${label} took ${duration}ms`);
+    } else if (duration > 1000) {
+      console.info(`[API] ${label} took ${duration}ms`);
+    }
+
+    return result;
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    console.error(`[API ERROR] ${label} failed after ${duration}ms:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Utility to create a timeout promise for early return strategy
+ * @param timeoutMs - Timeout in milliseconds
+ * @param message - Error message for timeout
+ * @returns Promise that rejects after timeout
+ */
+export const createTimeout = (timeoutMs: number, message: string): Promise<never> => {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error(message)), timeoutMs);
+  });
+};
+
+/**
+ * Utility to race a promise against a timeout
+ * @param promise - Promise to race
+ * @param timeoutMs - Timeout in milliseconds
+ * @param timeoutMessage - Message for timeout error
+ * @returns Promise that either resolves with the result or rejects with timeout
+ */
+export const withTimeout = <T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  timeoutMessage: string
+): Promise<T> => {
+  return Promise.race([
+    promise,
+    createTimeout(timeoutMs, timeoutMessage)
+  ]);
 };

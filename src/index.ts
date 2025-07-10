@@ -15,8 +15,8 @@ import { handleMissingParameter } from './utils/error';
 import {
   compressionOptions,
   corsOptions,
-  rateLimiter,
-  vercelCachingHeaders
+  vercelCachingHeaders,
+  requestTimeout
 } from './utils/configurations';
 import messages from './constants/messages';
 
@@ -24,6 +24,24 @@ dotenv.config();
 
 const totalCPUs = os.cpus().length;
 const port = process.env.PORT || 8000;
+
+// Request timeout middleware
+const timeoutMiddleware = (req: Request, res: Response, next: any) => {
+  const timeout = setTimeout(() => {
+    if (!res.headersSent) {
+      res.status(408).json({
+        error: 'Request timeout',
+        message: 'The request took too long to process'
+      });
+    }
+  }, requestTimeout);
+
+  res.on('finish', () => {
+    clearTimeout(timeout);
+  });
+
+  next();
+};
 
 if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
   console.log(`Number of CPUs is ${totalCPUs}`);
@@ -43,9 +61,9 @@ if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
 
   app.disable('x-powered-by');
   app.use(helmet());
-  app.use(rateLimiter);
   app.use(compressionOptions);
   app.use(cors(corsOptions));
+  app.use(timeoutMiddleware);
 
   const exitHandler = terminate(app, {
     coredump: false,
