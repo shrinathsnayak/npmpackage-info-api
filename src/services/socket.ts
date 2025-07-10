@@ -1,21 +1,21 @@
 import axios, { AxiosResponse } from 'axios';
-import {
-  getRandomApiKey,
-  getTransformedAlerts,
-  getTransformedScore
-} from '@/utils/helpers';
+import { getTransformedAlerts, getTransformedScore, getRandomApiKey } from '@/utils/helpers';
 import { tryCatchWrapper } from '@/utils/error';
 import messages from '@/constants/messages';
+import { axiosConfig } from '@/utils/configurations';
+
+// Create axios instance with optimized configuration
+const axiosInstance = axios.create(axiosConfig);
 
 /**
  * The function `getAPIKey` generates a random API key from an array and encodes it using Base64.
  * @returns The function `getAPIKey` is returning a string that starts with "Basic " followed by the
  * Base64 encoded value of the apiKey concatenated with itself using a colon as a separator.
  */
-export const getAPIKey = (): string => {
-  const API_KEYS_ARRAY: any[] = [process.env.SOCKET_DEV_API_KEY_1];
+const getAPIKey = (): string => {
+  const API_KEYS_ARRAY: string[] = [process.env.SOCKET_DEV_API_KEY_1 || ''];
   const apiKey: string = getRandomApiKey(API_KEYS_ARRAY);
-  return `Basic ${btoa(`${apiKey}:${apiKey}`)}`;
+  return `Basic ${Buffer.from(`${apiKey}:${apiKey}`).toString('base64')}`;
 };
 
 /**
@@ -35,7 +35,7 @@ export const getVulnerabilityScore = tryCatchWrapper(
   async (packageName: string, version: string) => {
     if (packageName && version) {
       const URL = `https://api.socket.dev/v0/npm/${packageName}/${version}`;
-      const scoreResponse: AxiosResponse = await axios.get(`${URL}/score`, {
+      const scoreResponse: AxiosResponse = await axiosInstance.get(`${URL}/score`, {
         headers: {
           accept: 'application/json',
           Authorization: getAPIKey()
@@ -70,7 +70,7 @@ export const getVulnerabilityScore = tryCatchWrapper(
 export const getAlerts = tryCatchWrapper(
   async (packageName: string, version: string) => {
     const URL = `https://api.socket.dev/v0/npm/${packageName}/${version}/issues`;
-    const alertsResponse: AxiosResponse = await axios.get(URL, {
+    const alertsResponse: AxiosResponse = await axiosInstance.get(URL, {
       headers: {
         accept: 'application/json',
         Authorization: getAPIKey()

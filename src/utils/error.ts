@@ -51,39 +51,32 @@ export const terminate = (
  * function is called. If an error occurs, it logs the error to the console and returns an object with
  * a status code and a default error message.
  */
-export const tryCatchWrapper = <T extends (...args: any[]) => Promise<any>>(
-  fn: T,
-  label?: string
-): T => {
-  return (async (...args: Parameters<T>): Promise<ReturnType<T> | any> => {
-    const startTime = performance.now(); // Start time measurement
-
+export const tryCatchWrapper = (fn: Function, functionName?: string) => {
+  return async (...args: any[]) => {
+    const startTime = Date.now();
     try {
       const result = await fn(...args);
-      const endTime = performance.now();
-
-      const executionTime = endTime - startTime;
-      console.log(
-        `${label ? `[${label}] ` : ''} executed in ${executionTime.toFixed(2)} ms`
-      );
+      const duration = Date.now() - startTime;
+      if (duration > 5000) { // Log slow operations
+        console.warn(`Slow operation detected: ${functionName || fn.name} took ${duration}ms`);
+      }
       return result;
     } catch (error: any) {
-      const endTime = performance.now();
-      const executionTime = endTime - startTime;
+      const duration = Date.now() - startTime;
+      console.error(`Error in ${functionName || fn.name}:`, {
+        error: error.message,
+        duration: `${duration}ms`,
+        stack: error.stack
+      });
 
-      console.error(
-        `${label ? `[${label}] ` : ''}Function "${fn.name || 'anonymous'}" failed after ${executionTime.toFixed(2)} ms. Error:`,
-        error
-      );
-
-      console.error(error);
-
+      // Return graceful error response instead of throwing
       return {
-        status: error?.response?.status || 500,
-        message: error?.response?.data?.error?.message || 'Something went wrong'
+        error: true,
+        message: error.message || 'An error occurred',
+        status: error.response?.status || 500
       };
     }
-  }) as T;
+  };
 };
 
 /**

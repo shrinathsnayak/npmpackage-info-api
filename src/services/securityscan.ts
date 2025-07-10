@@ -2,6 +2,10 @@ import axios, { AxiosResponse } from 'axios';
 import { mapScanData } from '@/mapping/securityscan';
 import { tryCatchWrapper } from '@/utils/error';
 import messages from '@/constants/messages';
+import { axiosConfig } from '@/utils/configurations';
+
+// Create axios instance with optimized configuration
+const axiosInstance = axios.create(axiosConfig);
 
 /**
  * The function `getSecurityScore` retrieves the security score of a GitHub repository using the
@@ -18,7 +22,7 @@ export const getSecurityScore = tryCatchWrapper(
   async (owner: string, repoName: string) => {
     if (owner && repoName) {
       const url = `https://api.securityscorecards.dev/projects/github.com/${owner}/${repoName}`;
-      const response: AxiosResponse = await axios.get(url);
+      const response: AxiosResponse = await axiosInstance.get(url);
       return mapScanData(response?.data);
     } else {
       return {
