@@ -4,9 +4,9 @@ import cluster from 'cluster';
 const totalCPUs = os.cpus().length;
 
 export function setupProductionClustering() {
-  // Skip clustering in development for faster startup
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Development mode: Skipping clustering for faster startup');
+  // Skip clustering if not enabled
+  if (process.env.ENABLE_CLUSTERING !== 'true') {
+    console.log('Clustering is disabled (ENABLE_CLUSTERING is not "true")');
     return;
   }
 
@@ -27,5 +27,7 @@ export function setupProductionClustering() {
 }
 
 export function isWorkerProcess(): boolean {
+  // If clustering is disabled, always run as worker
+  if (process.env.ENABLE_CLUSTERING !== 'true') return true;
   return !cluster.isPrimary || process.env.NODE_ENV !== 'production';
 }
