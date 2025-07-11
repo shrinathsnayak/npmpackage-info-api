@@ -2,7 +2,7 @@ import zlib from 'zlib';
 import compression from 'compression';
 import http from 'http';
 import https from 'https';
-import { DOMAIN_NAME, WHITELIST_DOMAINS } from '@/constants';
+import { WHITELIST_DOMAINS } from '@/constants';
 
 // Optimized timeout configuration for better performance
 export const axiosTimeout = 3000; // 3 seconds (reduced for faster failure detection)

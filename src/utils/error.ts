@@ -24,7 +24,7 @@ export const terminate = (
   };
 
   return (code: number, reason: string) =>
-    (err?: Error, promise?: Promise<unknown>) => {
+    (err?: Error) => {
       if (err && err instanceof Error) {
         console.error(
           `[terminate] ${reason}:`,
