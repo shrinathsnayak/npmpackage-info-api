@@ -95,9 +95,20 @@ export const getSumOfDownloads = (downloads: []) => {
  * represents a Monday and its corresponding total downloads for that week.
  */
 export const getWeeklyDownloads = (downloads: any) => {
+  // Validate that downloads is an array
+  if (!Array.isArray(downloads) || downloads.length === 0) {
+    return [];
+  }
+
   const firstMonday: any = downloads.findIndex(
     (d: any) => new Date(d.day).getDay() === 1
   );
+
+  // If no Monday found, return the original array
+  if (firstMonday === -1) {
+    return downloads;
+  }
+
   return downloads?.slice(firstMonday)?.reduce((acc: any, curr: any) => {
     const isMonday = new Date(curr.day).getDay() === 1;
     if (isMonday) {
@@ -111,7 +122,9 @@ export const getWeeklyDownloads = (downloads: any) => {
     }
 
     const last = acc[acc.length - 1];
-    last.downloads += curr.downloads;
+    if (last) {
+      last.downloads += curr.downloads;
+    }
     return acc;
   }, []);
 };
@@ -127,6 +140,11 @@ export const getWeeklyDownloads = (downloads: any) => {
  * month.
  */
 export const getMonthlyDownloads = (downloads: any) => {
+  // Validate that downloads is an array
+  if (!Array.isArray(downloads) || downloads.length === 0) {
+    return [];
+  }
+
   return downloads?.reduce((acc: any, curr: any) => {
     const last = acc[acc.length - 1];
     const isNewMonth =
@@ -141,7 +159,9 @@ export const getMonthlyDownloads = (downloads: any) => {
       ];
     }
 
-    last.downloads += curr.downloads;
+    if (last) {
+      last.downloads += curr.downloads;
+    }
     return acc;
   }, []);
 };
@@ -156,6 +176,11 @@ export const getMonthlyDownloads = (downloads: any) => {
  * total downloads for that year.
  */
 export const getYearlyDownloads = (downloads: any) => {
+  // Validate that downloads is an array
+  if (!Array.isArray(downloads) || downloads.length === 0) {
+    return [];
+  }
+
   return downloads?.reduce((acc: any, curr: any) => {
     const last = acc[acc.length - 1];
     const isNewYear =
@@ -171,7 +196,9 @@ export const getYearlyDownloads = (downloads: any) => {
       ];
     }
 
-    last.downloads += curr.downloads;
+    if (last) {
+      last.downloads += curr.downloads;
+    }
     return acc;
   }, []);
 };

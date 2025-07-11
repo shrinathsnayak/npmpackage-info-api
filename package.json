@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "npx nodemon",
+    "dev": "nodemon",
+    "dev:fast": "ts-node -r tsconfig-paths/register src/index.ts",
+    "dev:build": "concurrently \"npm run build:watch\" \"npm run dev:fast\"",
+    "build:watch": "tsc --watch",
     "lint": "eslint . --ext .ts",
     "build": "rimraf ./build && tsc",
     "start": "npm run build && node build/index.js",

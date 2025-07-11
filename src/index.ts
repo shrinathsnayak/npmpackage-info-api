@@ -1,178 +1,37 @@
 import 'module-alias/register';
-import os from 'os';
-import cors from 'cors';
 import dotenv from 'dotenv';
-import cluster from 'cluster';
-import helmet from 'helmet';
-import express, { Express, Request, Response } from 'express';
-import { getPackageDownloads, getPackageInfo } from './controllers/package';
-import { getGitHubInfo, getPackageVulnerabilities } from './services/github';
-import { getPkgInfo, searchPackage } from './services/npm';
-import { getHealth } from './controllers/health';
-import { getSecurityScore } from './services/securityscan';
-import { terminate, tryCatchWrapper } from './utils/error';
-import { handleMissingParameter } from './utils/error';
+import express, { Express } from 'express';
+import { setupMiddleware } from '@/utils/setupMiddleware';
+import { setupProductionClustering, isWorkerProcess } from '@/utils/serverSetup';
+import { setupExitHandler } from '@/utils/exitHandler';
 import {
-  compressionOptions,
-  corsOptions,
-  vercelCachingHeaders,
-  requestTimeout
-} from './utils/configurations';
-import messages from './constants/messages';
+  healthRoutes,
+  packageRoutes,
+  downloadsRoutes,
+  githubRoutes,
+  searchRoutes,
+  securityRoutes
+} from '@/routes';
 
 dotenv.config();
 
-const totalCPUs = os.cpus().length;
 const port = process.env.PORT || 8000;
 
-// Request timeout middleware
-const timeoutMiddleware = (req: Request, res: Response, next: any) => {
-  const timeout = setTimeout(() => {
-    if (!res.headersSent) {
-      res.status(408).json({
-        error: 'Request timeout',
-        message: 'The request took too long to process'
-      });
-    }
-  }, requestTimeout);
+setupProductionClustering();
 
-  res.on('finish', () => {
-    clearTimeout(timeout);
-  });
-
-  next();
-};
-
-if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
-  console.log(`Number of CPUs is ${totalCPUs}`);
-  console.log(`Primary ${process.pid} is running`);
-
-  for (let i = 0; i < totalCPUs; i++) {
-    cluster.fork();
-  }
-
-  cluster.on('exit', (worker) => {
-    console.log(`worker ${worker.process.pid} died`);
-    console.log("Let's fork another worker!");
-    cluster.fork();
-  });
-} else {
+if (isWorkerProcess()) {
   const app: Express = express();
 
-  app.disable('x-powered-by');
-  app.use(helmet());
-  app.use(compressionOptions);
-  app.use(cors(corsOptions));
-  app.use(timeoutMiddleware);
+  setupMiddleware(app);
+  setupExitHandler(app);
 
-  const exitHandler = terminate(app, {
-    coredump: false,
-    timeout: 500
-  });
-
-  process.on('uncaughtException', exitHandler(1, 'Unexpected Error'));
-  process.on('unhandledRejection', exitHandler(1, 'Unhandled Promise'));
-  process.on('SIGTERM', exitHandler(0, 'SIGTERM'));
-  process.on('SIGINT', exitHandler(0, 'SIGINT'));
-
-  app.get('/_health', (req: Request, res: Response) => {
-    const data = getHealth();
-    res.status(200).send(data);
-  });
-
-  app.get('/package', (req: Request, res: Response) => {
-    const { q } = req?.query as { q: string };
-
-    if (!q) {
-      handleMissingParameter(res, 404, messages.errors.PROJECT_NAME_MISSING);
-    } else {
-      tryCatchWrapper(async () => {
-        const data = await getPackageInfo(req);
-        res.status(200).header(vercelCachingHeaders).send(data);
-      })();
-    }
-  });
-
-  app.get('/downloads', (req: Request, res: Response) => {
-    const { packageName, startDate, endDate } = req.query as {
-      packageName: string;
-      startDate: string;
-      endDate: string;
-    };
-
-    if (!packageName) {
-      handleMissingParameter(res, 404, messages.errors.PROJECT_NAME_MISSING);
-    } else {
-      tryCatchWrapper(async () => {
-        const data = await getPackageDownloads(packageName, startDate, endDate);
-        res.status(200).header(vercelCachingHeaders).send(data);
-      })();
-    }
-  });
-
-  app.get('/npm', (req: Request, res: Response) => {
-    const { project, version = 'latest' } = req.query as {
-      project: string;
-      version: string;
-    };
-    if (!project) {
-      handleMissingParameter(res, 404, messages.errors.PROJECT_NAME_MISSING);
-    } else {
-      tryCatchWrapper(async () => {
-        const data = await getPkgInfo(project, version);
-        res.status(200).header(vercelCachingHeaders).send(data);
-      })();
-    }
-  });
-
-  app.get('/github', (req: Request, res: Response) => {
-    const { owner, repo } = req?.query as { owner: string; repo: string };
-    if (!owner || !repo) {
-      handleMissingParameter(res, 404, messages.errors.OWNER_OR_REPO_MISSING);
-    } else {
-      tryCatchWrapper(async () => {
-        const data = await getGitHubInfo(owner, repo);
-        res.status(200).header(vercelCachingHeaders).send(data);
-      })();
-    }
-  });
-
-  app.get('/scan', async (req: Request, res: Response) => {
-    const { owner, repo } = req?.query as { owner: string; repo: string };
-    if (!owner || !repo) {
-      handleMissingParameter(res, 404, messages.errors.OWNER_OR_REPO_MISSING);
-    } else {
-      tryCatchWrapper(async () => {
-        const data = await getSecurityScore(owner, repo);
-        res.status(200).header(vercelCachingHeaders).send(data);
-      })();
-    }
-  });
-
-  app.get('/search', async (req: Request, res: Response) => {
-    const { q, size } = req?.query as { q?: string; size?: number };
-
-    if (!q) {
-      handleMissingParameter(res, 404, messages.errors.SEARCH_QUERY_MISSING);
-    } else {
-      tryCatchWrapper(async () => {
-        const data = await searchPackage(q, size);
-        res.status(200).send(data);
-      })();
-    }
-  });
-
-  app.get('/vulnerabilities', async (req: Request, res: Response) => {
-    const { name, version } = req?.query as { name: string; version: string };
-    if (!name) {
-      handleMissingParameter(res, 404, messages.errors.PROJECT_NAME_MISSING);
-    } else {
-      tryCatchWrapper(async () => {
-        const data = await getPackageVulnerabilities(name, version);
-        res.status(200).header(vercelCachingHeaders).send(data);
-      })();
-    }
-  });
+  // Register routes
+  app.use(healthRoutes);
+  app.use(packageRoutes);
+  app.use(downloadsRoutes);
+  app.use(githubRoutes);
+  app.use(searchRoutes);
+  app.use(securityRoutes);
 
   app.listen(port, () => {
     console.log(`Server is Fire at http://localhost:${port}`);
