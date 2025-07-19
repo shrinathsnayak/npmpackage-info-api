@@ -20,7 +20,6 @@ export function setupProductionClustering() {
 
     cluster.on('exit', (worker) => {
       console.log(`worker ${worker.process.pid} died`);
-      console.log("Let's fork another worker!");
       cluster.fork();
     });
   }

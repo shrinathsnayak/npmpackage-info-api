@@ -12,4 +12,4 @@ export {
   githubRoutes,
   searchRoutes,
   securityRoutes
-}; 
+};

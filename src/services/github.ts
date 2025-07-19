@@ -7,10 +7,10 @@ import {
 import { tryCatchWrapper } from '@/utils/error';
 import { base64Decode } from '@/utils/helpers';
 import { groupVulnerabilitiesBySeverity } from '@/controllers/github';
-import { axiosConfig } from '@/utils/configurations';
+import { createAxiosInstanceWithRetry } from '@/utils/configurations';
 
-// Create axios instance with optimized configuration
-const axiosInstance = axios.create(axiosConfig);
+// Create axios instance with retry capability
+const axiosInstance = createAxiosInstanceWithRetry();
 
 /**
  * The function `getGitHubInfo` retrieves information about a GitHub repository using a GraphQL query.
@@ -52,7 +52,8 @@ export const getGitHubInfo = tryCatchWrapper(
     const { repository } = graphqlResponse.value?.data?.data || {};
 
     // Handle README response
-    const readMeContent = readMeData.status === 'fulfilled' ? readMeData.value : null;
+    const readMeContent =
+      readMeData.status === 'fulfilled' ? readMeData.value : null;
 
     return mapGithubData(repository, owner, readMeContent);
   },

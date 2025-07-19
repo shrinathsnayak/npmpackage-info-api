@@ -1,10 +1,11 @@
-import axios, { AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 import { mapNpmData, mapNpmSearchData } from '@/mapping/npm';
 import { tryCatchWrapper } from '@/utils/error';
-import { axiosConfig } from '@/utils/configurations';
+import { createAxiosInstanceWithRetry, axiosConfig } from '@/utils/configurations';
+import { getListOfRangesSinceStart } from '@/utils/helpers';
 
-// Create axios instance with optimized configuration
-const axiosInstance = axios.create(axiosConfig);
+// Create axios instance with retry capability
+const axiosInstance = createAxiosInstanceWithRetry();
 
 /**
  * The function `getPkgInfo` fetches information about a specified npm package and version from the npm
@@ -53,19 +54,106 @@ export const searchPackage = tryCatchWrapper(
   'searchPackage'
 );
 
+/**
+ * Fallback function to fetch download counts using npm registry API
+ * This is used when the primary fetchDownloadCounts method times out
+ */
+const fetchDownloadCountsFallback = tryCatchWrapper(
+  async (packageName: string, sinceDate: string, endDate: string) => {
+    try {
+      const ranges = getListOfRangesSinceStart(sinceDate, endDate);
+
+      // Fetch data for all ranges in parallel
+      const rangesResponses = await Promise.all(
+        ranges.map(async ({ start, end }) => {
+          try {
+            const response = await axiosInstance.get(
+              `https://api.npmjs.org/downloads/range/${start}:${end}/${packageName}`
+            );
+            return response.data;
+          } catch (error) {
+            console.warn(`Failed to fetch range ${start}:${end} for ${packageName}:`, error.message);
+            return { downloads: [] };
+          }
+        })
+      );
+
+      // Combine all downloads from different ranges
+      const allDownloads = rangesResponses.reduce((acc: any[], { downloads }) => {
+        return [...acc, ...(downloads || [])];
+      }, []);
+
+      // Find the last day with data
+      const lastDayWithData = allDownloads.findLastIndex(({ downloads }) => downloads > 0);
+      const allDownloadsUntilLastDayWithData = allDownloads.slice(0, lastDayWithData + 1);
+
+      // Remove all leading zeros
+      const firstNonZeroIndex = allDownloadsUntilLastDayWithData.findIndex((p) => p.downloads !== 0);
+      if (firstNonZeroIndex > 0) {
+        return { downloads: allDownloadsUntilLastDayWithData.slice(firstNonZeroIndex) };
+      }
+
+      return { downloads: allDownloadsUntilLastDayWithData };
+    } catch (error) {
+      console.error(`Fallback fetch failed for ${packageName}:`, error.message);
+      return { downloads: [] };
+    }
+  },
+  'fetchDownloadCountsFallback'
+);
+
 /* The `getAllDailyDownloads` function is a function that retrieves daily download data for a specified
 npm package within a given date range. */
 export const getAllDailyDownloads = tryCatchWrapper(
   async (packageName: string, sinceDate: string, endDate: string) => {
-    const rangesResponses: any = await fetchDownloadCounts(
-      packageName,
-      sinceDate,
-      endDate
-    );
-    const allDownloads: any = rangesResponses?.downloads;
-    const lastDayWithData = allDownloads?.findLastIndex(
+    let rangesResponses: any;
+
+    try {
+      // Try primary method first
+      rangesResponses = await fetchDownloadCounts(packageName, sinceDate, endDate);
+
+      // Check if we got valid data
+      if (!rangesResponses || !rangesResponses.downloads || !Array.isArray(rangesResponses.downloads) || rangesResponses.downloads.length === 0) {
+        throw new Error('No data from primary method');
+      }
+    } catch (primaryError) {
+      console.warn(`Primary download fetch failed for ${packageName}, trying fallback:`, primaryError.message);
+
+      // Use fallback method
+      try {
+        rangesResponses = await fetchDownloadCountsFallback(packageName, sinceDate, endDate);
+      } catch (fallbackError) {
+        console.error(`Both primary and fallback methods failed for ${packageName}:`, fallbackError.message);
+        return [];
+      }
+    }
+
+    // Handle case where no data is returned
+    if (
+      !rangesResponses ||
+      !rangesResponses.downloads ||
+      !Array.isArray(rangesResponses.downloads)
+    ) {
+      console.warn(`No download data found for package: ${packageName}`);
+      return [];
+    }
+
+    const allDownloads: any = rangesResponses.downloads;
+
+    // Handle empty downloads array
+    if (allDownloads.length === 0) {
+      return [];
+    }
+
+    const lastDayWithData = allDownloads.findLastIndex(
       ({ downloads }: any) => downloads > 0
     );
+
+    // If no days with data found, return empty array
+    if (lastDayWithData === -1) {
+      return [];
+    }
+
     const allDownloadsUntilLastDayWithData = allDownloads.slice(
       0,
       lastDayWithData + 1
@@ -74,6 +162,7 @@ export const getAllDailyDownloads = tryCatchWrapper(
     const firstNonZeroIndex = allDownloadsUntilLastDayWithData.findIndex(
       (p: any) => p.downloads !== 0
     );
+
     if (firstNonZeroIndex > 0) {
       return allDownloadsUntilLastDayWithData.slice(firstNonZeroIndex);
     }
@@ -87,8 +176,15 @@ export const getAllDailyDownloads = tryCatchWrapper(
 npm package within a given date range. */
 const fetchDownloadCounts = tryCatchWrapper(
   async (packageName: string, sinceDate: string, endDate: string) => {
+    // Create a custom axios instance with shorter timeout for this specific endpoint
+    const axios = require('axios');
+    const quickAxiosInstance = axios.create({
+      ...axiosConfig,
+      timeout: 5000 // 5 seconds timeout instead of 10
+    });
+
     try {
-      const { data } = await axiosInstance.get(
+      const { data } = await quickAxiosInstance.get(
         `https://npm-stat.com/api/download-counts?package=${packageName}&from=${sinceDate}&until=${endDate}`
       );
 
@@ -109,7 +205,11 @@ const fetchDownloadCounts = tryCatchWrapper(
 
       return { downloads: result };
     } catch (fallbackError) {
-      return [];
+      console.warn(
+        `Failed to fetch download counts for ${packageName}:`,
+        fallbackError.message
+      );
+      throw fallbackError; // Re-throw to trigger fallback
     }
   },
   'fetchDownloadCounts'

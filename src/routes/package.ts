@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { getPackageInfo } from '@/controllers/package';
 import { getPkgInfo } from '@/services/npm';
+import { getBundlePhobiaData } from '@/services/bundlephobia';
 import { tryCatchWrapper } from '@/utils/error';
 import { handleMissingParameter } from '@/utils/error';
 import { vercelCachingHeaders } from '@/utils/configurations';
@@ -46,4 +47,21 @@ router.get('/npm', (req: Request, res: Response) => {
   }
 });
 
-export default router; 
+/**
+ * @route GET /bundlephobia
+ * @desc Get bundle size information for a package
+ * @access Public
+ */
+router.get('/bundlephobia', (req: Request, res: Response) => {
+  const { package: packageName } = req.query as { package: string };
+  if (!packageName) {
+    handleMissingParameter(res, 404, messages.errors.PROJECT_NAME_MISSING);
+  } else {
+    tryCatchWrapper(async () => {
+      const data = await getBundlePhobiaData(packageName);
+      res.status(200).header(vercelCachingHeaders).send(data);
+    })();
+  }
+});
+
+export default router;

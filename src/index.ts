@@ -1,8 +1,10 @@
-import 'module-alias/register';
 import dotenv from 'dotenv';
 import express, { Express } from 'express';
 import { setupMiddleware } from '@/utils/setupMiddleware';
-import { setupProductionClustering, isWorkerProcess } from '@/utils/serverSetup';
+import {
+  setupProductionClustering,
+  isWorkerProcess
+} from '@/utils/serverSetup';
 import { setupExitHandler } from '@/utils/exitHandler';
 import {
   healthRoutes,

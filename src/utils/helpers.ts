@@ -246,10 +246,10 @@ export const getTransformedScore = (score: any) => {
             (compAcc: any, compKey: any) => {
               compAcc[compKey] = score[key]?.components[compKey]?.score
                 ? parseFloat(
-                  (score[key]?.components[compKey]?.maxScore * 100)?.toFixed(
-                    1
+                    (score[key]?.components[compKey]?.maxScore * 100)?.toFixed(
+                      1
+                    )
                   )
-                )
                 : 0;
               return compAcc;
             },
@@ -328,7 +328,10 @@ export const extractFundingURLs = (funding: any) => {
  * @param fn - Function to execute and measure
  * @returns Promise with the result of the function
  */
-export const measureTime = async <T>(label: string, fn: () => Promise<T>): Promise<T> => {
+export const measureTime = async <T>(
+  label: string,
+  fn: () => Promise<T>
+): Promise<T> => {
   const startTime = Date.now();
   try {
     const result = await fn();
@@ -355,7 +358,10 @@ export const measureTime = async <T>(label: string, fn: () => Promise<T>): Promi
  * @param message - Error message for timeout
  * @returns Promise that rejects after timeout
  */
-export const createTimeout = (timeoutMs: number, message: string): Promise<never> => {
+export const createTimeout = (
+  timeoutMs: number,
+  message: string
+): Promise<never> => {
   return new Promise((_, reject) => {
     setTimeout(() => reject(new Error(message)), timeoutMs);
   });
@@ -373,8 +379,5 @@ export const withTimeout = <T>(
   timeoutMs: number,
   timeoutMessage: string
 ): Promise<T> => {
-  return Promise.race([
-    promise,
-    createTimeout(timeoutMs, timeoutMessage)
-  ]);
+  return Promise.race([promise, createTimeout(timeoutMs, timeoutMessage)]);
 };

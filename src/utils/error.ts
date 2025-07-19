@@ -23,21 +23,17 @@ export const terminate = (
     options.coredump ? process.abort() : process.exit();
   };
 
-  return (code: number, reason: string) =>
-    (err?: Error) => {
-      if (err && err instanceof Error) {
-        console.error(
-          `[terminate] ${reason}:`,
-          err.stack || err.message || err
-        );
-      } else {
-        console.error(`[terminate] ${reason} (no error object)`);
-      }
+  return (code: number, reason: string) => (err?: Error) => {
+    if (err && err instanceof Error) {
+      console.error(`[terminate] ${reason}:`, err.stack || err.message || err);
+    } else {
+      console.error(`[terminate] ${reason} (no error object)`);
+    }
 
-      // Attempt a graceful shutdown
-      server.close(() => exit());
-      setTimeout(exit, options.timeout).unref();
-    };
+    // Attempt a graceful shutdown
+    server.close(() => exit());
+    setTimeout(exit, options.timeout).unref();
+  };
 };
 
 /**
@@ -57,8 +53,11 @@ export const tryCatchWrapper = (fn: Function, functionName?: string) => {
     try {
       const result = await fn(...args);
       const duration = Date.now() - startTime;
-      if (duration > 5000) { // Log slow operations
-        console.warn(`Slow operation detected: ${functionName || fn.name} took ${duration}ms`);
+      if (duration > 5000) {
+        // Log slow operations
+        console.warn(
+          `Slow operation detected: ${functionName || fn.name} took ${duration}ms`
+        );
       }
       return result;
     } catch (error: any) {

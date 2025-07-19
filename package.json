@@ -5,9 +5,6 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon",
-    "dev:fast": "ts-node -r tsconfig-paths/register src/index.ts",
-    "dev:build": "concurrently \"npm run build:watch\" \"npm run dev:fast\"",
-    "build:watch": "tsc --watch",
     "lint": "eslint . --ext .ts",
     "build": "rimraf ./build && tsc",
     "start": "npm run build && node build/index.js",
@@ -43,10 +40,6 @@
     "express": "^4.17.1",
     "express-rate-limit": "^7.4.1",
     "helmet": "^8.0.0",
-    "module-alias": "^2.2.3",
     "semver": "^7.6.3"
-  },
-  "_moduleAliases": {
-    "@": "build"
   }
 }

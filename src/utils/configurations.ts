@@ -5,15 +5,25 @@ import https from 'https';
 import { WHITELIST_DOMAINS } from '@/constants';
 
 // Optimized timeout configuration for better performance
-export const axiosTimeout = 3000; // 3 seconds (reduced for faster failure detection)
-export const requestTimeout = 8000; // 8 seconds (reduced for faster responses)
+export const axiosTimeout = 10000; // 10 seconds (increased for external API calls)
+export const requestTimeout = 15000; // 15 seconds (increased for better reliability)
+
+// Retry configuration
+const RETRY_CONFIG = {
+  MAX_RETRIES: 3,
+  BASE_DELAY: 1000, // 1 second
+  MAX_DELAY: 10000, // 10 seconds
+  BACKOFF_MULTIPLIER: 2,
+  RETRYABLE_STATUS_CODES: [408, 429, 500, 502, 503, 504],
+  RETRYABLE_ERROR_CODES: ['ECONNRESET', 'ECONNREFUSED', 'ETIMEDOUT', 'ENOTFOUND']
+};
 
 // HTTP keep-alive configuration for connection reuse
 export const axiosConfig = {
   timeout: axiosTimeout,
   headers: {
     'User-Agent': 'npm-package-info-api/1.0.0',
-    'Connection': 'keep-alive',
+    Connection: 'keep-alive',
     'Accept-Encoding': 'gzip, deflate, br'
   },
   // Enable connection pooling and keep-alive
@@ -31,6 +41,91 @@ export const axiosConfig = {
     maxFreeSockets: 10,
     timeout: 60000
   })
+};
+
+/**
+ * Create axios instance with automatic retry functionality
+ * @returns Axios instance with retry interceptors
+ */
+export const createAxiosInstanceWithRetry = () => {
+  const axios = require('axios');
+  const instance = axios.create(axiosConfig);
+
+  // Request interceptor for logging
+  instance.interceptors.request.use(
+    (config: any) => {
+      config.metadata = { startTime: new Date() };
+      return config;
+    },
+    (error: any) => {
+      return Promise.reject(error);
+    }
+  );
+
+  // Response interceptor with retry logic
+  instance.interceptors.response.use(
+    (response: any) => {
+      const duration = new Date().getTime() - response.config.metadata.startTime;
+      if (duration > 5000) {
+        console.warn(`[SLOW API] ${response.config.url} took ${duration}ms`);
+      }
+      return response;
+    },
+    async (error: any) => {
+      const duration = new Date().getTime() - (error.config?.metadata?.startTime || new Date());
+
+      // Check if error is retryable
+      const isRetryable = (
+        error.code && RETRY_CONFIG.RETRYABLE_ERROR_CODES.includes(error.code) ||
+        error.response?.status && RETRY_CONFIG.RETRYABLE_STATUS_CODES.includes(error.response.status) ||
+        error.code === 'ECONNABORTED' ||
+        error.message?.includes('timeout')
+      );
+
+      // Only retry if it's a retryable error and we haven't exceeded max retries
+      if (isRetryable && error.config) {
+        const currentRetry = error.config.__retryCount || 0;
+
+        if (currentRetry < RETRY_CONFIG.MAX_RETRIES) {
+          // Increment retry count
+          error.config.__retryCount = currentRetry + 1;
+
+          const delay = Math.min(
+            RETRY_CONFIG.BASE_DELAY * Math.pow(RETRY_CONFIG.BACKOFF_MULTIPLIER, currentRetry),
+            RETRY_CONFIG.MAX_DELAY
+          );
+
+          console.warn(`[AXIOS RETRY] ${error.config.url} - Attempt ${currentRetry + 1}/${RETRY_CONFIG.MAX_RETRIES + 1}:`, {
+            error: error.message,
+            status: error.response?.status,
+            code: error.code,
+            delay: `${delay}ms`
+          });
+
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, delay));
+
+          // Retry the request with a fresh config
+          const retryConfig = { ...error.config };
+          delete retryConfig.__isRetryRequest; // Reset retry flag
+          return instance.request(retryConfig);
+        }
+      }
+
+      // Log final error
+      console.error(`[API ERROR] ${error.config?.url || 'Unknown URL'}:`, {
+        error: error.message,
+        status: error.response?.status,
+        code: error.code,
+        duration: `${duration}ms`,
+        retryCount: error.config?.__retryCount || 0
+      });
+
+      return Promise.reject(error);
+    }
+  );
+
+  return instance;
 };
 
 /* The `export const corsOptions` object is defining a configuration for Cross-Origin Resource Sharing

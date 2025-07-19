@@ -1,11 +1,15 @@
 import axios, { AxiosResponse } from 'axios';
-import { getTransformedAlerts, getTransformedScore, getRandomApiKey } from '@/utils/helpers';
+import {
+  getTransformedAlerts,
+  getTransformedScore,
+  getRandomApiKey
+} from '@/utils/helpers';
 import { tryCatchWrapper } from '@/utils/error';
 import messages from '@/constants/messages';
-import { axiosConfig } from '@/utils/configurations';
+import { createAxiosInstanceWithRetry } from '@/utils/configurations';
 
-// Create axios instance with optimized configuration
-const axiosInstance = axios.create(axiosConfig);
+// Create axios instance with retry capability
+const axiosInstance = createAxiosInstanceWithRetry();
 
 /**
  * The function `getAPIKey` generates a random API key from an array and encodes it using Base64.
@@ -35,12 +39,15 @@ export const getVulnerabilityScore = tryCatchWrapper(
   async (packageName: string, version: string) => {
     if (packageName && version) {
       const URL = `https://api.socket.dev/v0/npm/${packageName}/${version}`;
-      const scoreResponse: AxiosResponse = await axiosInstance.get(`${URL}/score`, {
-        headers: {
-          accept: 'application/json',
-          Authorization: getAPIKey()
+      const scoreResponse: AxiosResponse = await axiosInstance.get(
+        `${URL}/score`,
+        {
+          headers: {
+            accept: 'application/json',
+            Authorization: getAPIKey()
+          }
         }
-      });
+      );
       return {
         status: 200,
         data: getTransformedScore(scoreResponse?.data)

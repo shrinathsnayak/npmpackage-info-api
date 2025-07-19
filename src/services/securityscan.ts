@@ -2,10 +2,10 @@ import axios, { AxiosResponse } from 'axios';
 import { mapScanData } from '@/mapping/securityscan';
 import { tryCatchWrapper } from '@/utils/error';
 import messages from '@/constants/messages';
-import { axiosConfig } from '@/utils/configurations';
+import { createAxiosInstanceWithRetry } from '@/utils/configurations';
 
-// Create axios instance with optimized configuration
-const axiosInstance = axios.create(axiosConfig);
+// Create axios instance with retry capability
+const axiosInstance = createAxiosInstanceWithRetry();
 
 /**
  * The function `getSecurityScore` retrieves the security score of a GitHub repository using the

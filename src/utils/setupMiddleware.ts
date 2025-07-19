@@ -1,7 +1,11 @@
 import { Express, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
-import { compressionOptions, corsOptions, requestTimeout } from './configurations';
+import {
+  compressionOptions,
+  corsOptions,
+  requestTimeout
+} from './configurations';
 
 // Request timeout middleware
 const timeoutMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -27,4 +31,4 @@ export function setupMiddleware(app: Express) {
   app.use(compressionOptions);
   app.use(cors(corsOptions));
   app.use(timeoutMiddleware);
-} 
+}
