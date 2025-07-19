@@ -1,10 +1,10 @@
 import axios, { AxiosResponse } from 'axios';
 import { bundlePhobiaMapping } from '@/mapping/bundlephobia';
 import { tryCatchWrapper } from '@/utils/error';
-import { axiosConfig } from '@/utils/configurations';
+import { createAxiosInstanceWithRetry } from '@/utils/configurations';
 
-// Create axios instance with optimized configuration
-const axiosInstance = axios.create(axiosConfig);
+// Create axios instance with retry capability
+const axiosInstance = createAxiosInstanceWithRetry();
 
 /**
  * The function `getBundlePhobiaData` fetches bundle size information for a specified npm package from
@@ -14,11 +14,8 @@ const axiosInstance = axios.create(axiosConfig);
  * @returns The function `getBundlePhobiaData` is returning the result of the `bundlePhobiaMapping`
  * function applied to the data received from the BundlePhobia API for the specified package.
  */
-export const getBundlePhobiaData = tryCatchWrapper(
-  async (pkg: string) => {
-    const url = `https://bundlephobia.com/api/size?package=${pkg}`;
-    const response: AxiosResponse = await axiosInstance.get(url);
-    return bundlePhobiaMapping(response?.data);
-  },
-  'getBundlePhobiaData'
-);
+export const getBundlePhobiaData = tryCatchWrapper(async (pkg: string) => {
+  const url = `https://bundlephobia.com/api/size?package=${pkg}`;
+  const response: AxiosResponse = await axiosInstance.get(url);
+  return bundlePhobiaMapping(response?.data);
+}, 'getBundlePhobiaData');

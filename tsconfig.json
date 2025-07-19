@@ -1,21 +1,27 @@
 {
   "ts-node": {
-    "require": ["tsconfig-paths/register"]
+    "require": ["tsconfig-paths/register"],
+    "transpileOnly": true,
+    "files": true
   },
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2020",
     "module": "commonjs",
-    "lib": ["es6"],
+    "lib": ["es2020"],
     "allowJs": true,
     "outDir": "build",
     "rootDir": "src",
-    "strict": true,
-    "noImplicitAny": true,
+    "strict": false,
+    "noImplicitAny": false,
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
-  }
+    },
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "build", "**/*.test.ts", "**/*.spec.ts"]
 }

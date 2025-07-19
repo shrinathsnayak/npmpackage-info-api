@@ -44,21 +44,32 @@ export const getPackageInfo = tryCatchWrapper(async (req: Request) => {
     ]);
 
     // Check if package exists early
-    if (npmResult.status === 'rejected' && npmResult.reason.message === 'Package not found') {
+    if (
+      npmResult.status === 'rejected' &&
+      npmResult.reason.message === 'Package not found'
+    ) {
       return {
         status: 404,
         message: 'Package not found'
       };
     }
 
-    const npm = npmResult.status === 'fulfilled' ? npmResult.value : { error: 'NPM API failed' };
-    const bundle = bundleResult.status === 'fulfilled' ? bundleResult.value : { error: 'BundlePhobia API failed' };
+    const npm =
+      npmResult.status === 'fulfilled'
+        ? npmResult.value
+        : { error: 'NPM API failed' };
+    const bundle =
+      bundleResult.status === 'fulfilled'
+        ? bundleResult.value
+        : { error: 'BundlePhobia API failed' };
 
     // Phase 2: GitHub info (depends on npm data)
     let gitHub: any = {};
     if (npm?.data?.repositoryUrl) {
       try {
-        gitHub = await measureTime(`GitHub API (${q})`, () => getRepositoryInfo(npm));
+        gitHub = await measureTime(`GitHub API (${q})`, () =>
+          getRepositoryInfo(npm)
+        );
         if (!gitHub || !gitHub.data) {
           gitHub = { error: 'GitHub API failed - invalid response' };
         }
@@ -73,27 +84,36 @@ export const getPackageInfo = tryCatchWrapper(async (req: Request) => {
         if (gitHub?.data?.owner && gitHub?.data?.name) {
           return getSecurityScore(gitHub.data.owner, gitHub.data.name);
         }
-        return Promise.resolve({ error: 'Security scan failed - no GitHub data' });
+        return Promise.resolve({
+          error: 'Security scan failed - no GitHub data'
+        });
       }),
-      measureTime(`Vulnerability API (${q})`, () => getVulnerabilityScore(npm?.data?.name, npm?.data?.version))
+      measureTime(`Vulnerability API (${q})`, () =>
+        getVulnerabilityScore(npm?.data?.name, npm?.data?.version)
+      )
     ]);
 
     const totalTime = Date.now() - startTime;
 
-    // Log performance metrics
-    console.log(`[PERFORMANCE] Package ${q} completed in ${totalTime}ms`);
-
     // Return partial data if taking too long (early return strategy)
     if (totalTime > requestTimeout) {
-      console.warn(`[PERFORMANCE] Package ${q} took ${totalTime}ms - returning partial data`);
+      console.warn(
+        `[PERFORMANCE] Package ${q} took ${totalTime}ms - returning partial data`
+      );
     }
 
     return {
       npm,
       bundle,
       gitHub,
-      securityScore: securityScore.status === 'fulfilled' ? securityScore.value : { error: 'Security scan failed' },
-      vulnerabilityScore: vulnerabilityScore.status === 'fulfilled' ? vulnerabilityScore.value : { error: 'Vulnerability scan failed' },
+      securityScore:
+        securityScore.status === 'fulfilled'
+          ? securityScore.value
+          : { error: 'Security scan failed' },
+      vulnerabilityScore:
+        vulnerabilityScore.status === 'fulfilled'
+          ? vulnerabilityScore.value
+          : { error: 'Vulnerability scan failed' },
       performance: {
         totalTime,
         timestamp: new Date().toISOString()
@@ -101,7 +121,10 @@ export const getPackageInfo = tryCatchWrapper(async (req: Request) => {
     };
   } catch (error: any) {
     const totalTime = Date.now() - startTime;
-    console.error(`[ERROR] Package ${q} failed after ${totalTime}ms:`, error.message);
+    console.error(
+      `[ERROR] Package ${q} failed after ${totalTime}ms:`,
+      error.message
+    );
 
     return {
       status: 500,
